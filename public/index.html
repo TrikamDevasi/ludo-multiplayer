@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#4CAF50">
+    <title>Ludo Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Ludo Multiplayer</h1>
+        
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="status-bar">
+            <span class="status-dot"></span>
+            <span id="statusText">Connecting...</span>
+        </div>
+
+        <!-- Menu Screen -->
+        <div id="menuScreen" class="screen active">
+            <div class="menu-card">
+                <h2>Welcome to Ludo!</h2>
+                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
+                
+                <div class="setting-group">
+                    <label>Number of Players:</label>
+                    <select id="playerCountSelect" class="setting-select">
+                        <option value="2" selected>2 Players</option>
+                        <option value="3">3 Players</option>
+                        <option value="4">4 Players</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="createRoomBtn" class="btn btn-primary">Create Room</button>
+                    <button id="joinRoomBtn" class="btn btn-secondary">Join Room</button>
+                </div>
+
+                <div id="joinRoomSection" class="hidden">
+                    <input type="text" id="roomIdInput" placeholder="Enter Room ID" maxlength="6">
+                    <button id="joinRoomConfirmBtn" class="btn btn-success">Join</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div id="waitingScreen" class="screen">
+            <div class="waiting-card">
+                <h2>Room Created!</h2>
+                <p>Share this Room ID with your friends:</p>
+                <div class="room-id-display">
+                    <span id="displayRoomId"></span>
+                    <button id="copyRoomIdBtn" class="btn-icon" title="Copy Room ID">📋</button>
+                </div>
+                
+                <div id="playersWaiting">
+                    <h3>Players:</h3>
+                    <div id="playersList"></div>
+                </div>
+
+                <button id="startGameBtn" class="btn btn-success">Start Game</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <div class="players-info" id="playersInfo"></div>
+                <div class="turn-indicator">
+                    <span id="turnText">Waiting...</span>
+                </div>
+            </div>
+
+            <div class="game-container">
+                <!-- Ludo Board -->
+                <div class="ludo-board">
+                    <!-- Red Home -->
+                    <div class="home-area red-home">
+                        <div class="home-tokens" id="redHome">
+                            <div class="token red-token" data-color="red" data-id="0"></div>
+                            <div class="token red-token" data-color="red" data-id="1"></div>
+                            <div class="token red-token" data-color="red" data-id="2"></div>
+                            <div class="token red-token" data-color="red" data-id="3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Blue Home -->
+                    <div class="home-area blue-home">
+                        <div class="home-tokens" id="blueHome">
+                            <div class="token blue-token" data-color="blue" data-id="0"></div>
+                            <div class="token blue-token" data-color="blue" data-id="1"></div>
+                            <div class="token blue-token" data-color="blue" data-id="2"></div>
+                            <div class="token blue-token" data-color="blue" data-id="3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Green Home -->
+                    <div class="home-area green-home">
+                        <div class="home-tokens" id="greenHome">
+                            <div class="token green-token" data-color="green" data-id="0"></div>
+                            <div class="token green-token" data-color="green" data-id="1"></div>
+                            <div class="token green-token" data-color="green" data-id="2"></div>
+                            <div class="token green-token" data-color="green" data-id="3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Yellow Home -->
+                    <div class="home-area yellow-home">
+                        <div class="home-tokens" id="yellowHome">
+                            <div class="token yellow-token" data-color="yellow" data-id="0"></div>
+                            <div class="token yellow-token" data-color="yellow" data-id="1"></div>
+                            <div class="token yellow-token" data-color="yellow" data-id="2"></div>
+                            <div class="token yellow-token" data-color="yellow" data-id="3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Center -->
+                    <div class="center-area">
+                        <div class="center-triangle red-tri"></div>
+                        <div class="center-triangle blue-tri"></div>
+                        <div class="center-triangle green-tri"></div>
+                        <div class="center-triangle yellow-tri"></div>
+                    </div>
+
+                    <!-- Path cells will be generated by JavaScript -->
+                    <div id="boardPath"></div>
+                </div>
+
+                <!-- Dice Area -->
+                <div class="dice-area">
+                    <div class="dice-container">
+                        <div id="dice" class="dice">
+                            <div class="dice-face">?</div>
+                        </div>
+                        <button id="rollDiceBtn" class="btn btn-primary">Roll Dice</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Modal -->
+        <div id="gameOverModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="winner-icon">🏆</div>
+                <h2 id="winnerText">Player Wins!</h2>
+                <button id="backToMenuBtn" class="btn btn-primary">Back to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
