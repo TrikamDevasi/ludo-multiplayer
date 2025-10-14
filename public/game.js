@@ -3,6 +3,7 @@ let ws;
 let currentRoomId = null;
 let myColor = null;
 let gameState = null;
+let canvas, ctx;
 
 // DOM Elements
 const menuScreen = document.getElementById('menuScreen');
@@ -32,6 +33,18 @@ const rollDiceBtn = document.getElementById('rollDiceBtn');
 const gameOverModal = document.getElementById('gameOverModal');
 const winnerText = document.getElementById('winnerText');
 const backToMenuBtn = document.getElementById('backToMenuBtn');
+
+// Ludo Board Configuration
+const COLORS = {
+    red: '#ef4444',
+    blue: '#3b82f6',
+    green: '#10b981',
+    yellow: '#f59e0b'
+};
+
+const CELL_SIZE = 35;
+const BOARD_SIZE = 15;
+const TOKEN_RADIUS = 12;
 
 // Initialize WebSocket
 function connectWebSocket() {
@@ -89,7 +102,7 @@ function handleServerMessage(data) {
             break;
         case 'token_moved':
             gameState = data.gameState;
-            updateBoard();
+            drawBoard();
             break;
         case 'turn_changed':
             gameState = data.gameState;
@@ -180,22 +193,29 @@ function showGameScreen(players) {
     waitingScreen.classList.remove('active');
     gameScreen.classList.add('active');
     
+    // Initialize canvas
+    canvas = document.getElementById('ludoCanvas');
+    ctx = canvas.getContext('2d');
+    
     // Display players
     playersInfo.innerHTML = players.map(player => `
         <div class="player-info">
-            <div class="player-color-dot" style="background: ${player.color}"></div>
+            <div class="player-color-dot" style="background: ${COLORS[player.color]}"></div>
             <span>${player.name}</span>
         </div>
     `).join('');
     
-    updateBoard();
+    drawBoard();
     updateTurn(gameState.currentTurn);
+    
+    // Add click listener for tokens
+    canvas.addEventListener('click', handleCanvasClick);
 }
 
 function updatePlayersList(players) {
     playersList.innerHTML = players.map(player => `
         <div class="player-item">
-            <div class="player-color-dot" style="background: ${player.color}"></div>
+            <div class="player-color-dot" style="background: ${COLORS[player.color]}; width: 20px; height: 20px; border-radius: 50%;"></div>
             <span>${player.name}</span>
         </div>
     `).join('');
@@ -208,10 +228,6 @@ function showDiceRoll(value) {
     setTimeout(() => {
         dice.classList.remove('rolling');
         dice.querySelector('.dice-face').textContent = value;
-        
-        if (gameState.currentTurn === myColor) {
-            enableTokenSelection(value);
-        }
     }, 500);
 }
 
@@ -221,30 +237,37 @@ function updateTurn(currentTurn) {
         turnText.style.color = '#10b981';
         rollDiceBtn.disabled = false;
     } else {
-        turnText.textContent = `${currentTurn}'s Turn`;
+        turnText.textContent = `${currentTurn.toUpperCase()}'s Turn`;
         turnText.style.color = '#6b7280';
         rollDiceBtn.disabled = true;
     }
+    drawBoard();
 }
 
-function enableTokenSelection(diceValue) {
-    const tokens = document.querySelectorAll(`.${myColor}-token`);
+function handleCanvasClick(event) {
+    if (!gameState || gameState.currentTurn !== myColor || !gameState.diceValue) return;
     
-    tokens.forEach(token => {
-        const tokenId = parseInt(token.dataset.id);
-        const tokenData = gameState.players[myColor].tokens[tokenId];
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    // Check if clicked on a token
+    const player = gameState.players[myColor];
+    for (let i = 0; i < player.tokens.length; i++) {
+        const token = player.tokens[i];
+        const pos = getTokenPosition(myColor, token, i);
         
-        // Can bring out with 6
-        if (tokenData.position === -1 && diceValue === 6) {
-            token.classList.add('active');
-            token.onclick = () => moveToken(tokenId);
+        const dist = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
+        if (dist <= TOKEN_RADIUS) {
+            // Check if move is valid
+            if (token.position === -1 && gameState.diceValue === 6) {
+                moveToken(i);
+            } else if (token.position >= 0 && !token.isHome) {
+                moveToken(i);
+            }
+            break;
         }
-        // Can move if on board
-        else if (tokenData.position >= 0 && !tokenData.isHome) {
-            token.classList.add('active');
-            token.onclick = () => moveToken(tokenId);
-        }
-    });
+    }
 }
 
 function moveToken(tokenId) {
@@ -252,44 +275,203 @@ function moveToken(tokenId) {
         type: 'move_token',
         tokenId: tokenId
     }));
+}
+
+// Drawing Functions
+function drawBoard() {
+    if (!ctx) return;
     
-    // Disable all tokens
-    document.querySelectorAll('.token').forEach(t => {
-        t.classList.remove('active');
-        t.onclick = null;
+    // Clear canvas
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw grid
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    
+    for (let i = 0; i <= BOARD_SIZE; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * CELL_SIZE, 0);
+        ctx.lineTo(i * CELL_SIZE, canvas.height);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(0, i * CELL_SIZE);
+        ctx.lineTo(canvas.width, i * CELL_SIZE);
+        ctx.stroke();
+    }
+    
+    // Draw home areas
+    drawHomeArea('red', 0, 0);
+    drawHomeArea('blue', 9, 0);
+    drawHomeArea('green', 0, 9);
+    drawHomeArea('yellow', 9, 9);
+    
+    // Draw center
+    drawCenter();
+    
+    // Draw path
+    drawPath();
+    
+    // Draw tokens
+    if (gameState) {
+        for (let color in gameState.players) {
+            drawTokens(color);
+        }
+    }
+}
+
+function drawHomeArea(color, gridX, gridY) {
+    const x = gridX * CELL_SIZE;
+    const y = gridY * CELL_SIZE;
+    const size = 6 * CELL_SIZE;
+    
+    ctx.fillStyle = COLORS[color];
+    ctx.globalAlpha = 0.3;
+    ctx.fillRect(x, y, size, size);
+    ctx.globalAlpha = 1;
+    
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x, y, size, size);
+    
+    // Draw token spots
+    const spots = [
+        [1.5, 1.5], [4.5, 1.5],
+        [1.5, 4.5], [4.5, 4.5]
+    ];
+    
+    ctx.fillStyle = COLORS[color];
+    spots.forEach(([sx, sy]) => {
+        ctx.beginPath();
+        ctx.arc(
+            x + sx * CELL_SIZE,
+            y + sy * CELL_SIZE,
+            TOKEN_RADIUS,
+            0,
+            Math.PI * 2
+        );
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     });
 }
 
-function updateBoard() {
-    // Update token positions
-    for (let color in gameState.players) {
-        const player = gameState.players[color];
+function drawCenter() {
+    const centerX = 7.5 * CELL_SIZE;
+    const centerY = 7.5 * CELL_SIZE;
+    const size = CELL_SIZE;
+    
+    // Draw triangles
+    const triangles = [
+        { color: 'red', points: [[0, 0], [0, -size], [size, 0]] },
+        { color: 'blue', points: [[0, 0], [size, 0], [0, size]] },
+        { color: 'green', points: [[0, 0], [0, size], [-size, 0]] },
+        { color: 'yellow', points: [[0, 0], [-size, 0], [0, -size]] }
+    ];
+    
+    triangles.forEach(tri => {
+        ctx.fillStyle = COLORS[tri.color];
+        ctx.beginPath();
+        ctx.moveTo(centerX + tri.points[0][0], centerY + tri.points[0][1]);
+        ctx.lineTo(centerX + tri.points[1][0], centerY + tri.points[1][1]);
+        ctx.lineTo(centerX + tri.points[2][0], centerY + tri.points[2][1]);
+        ctx.closePath();
+        ctx.fill();
+    });
+}
+
+function drawPath() {
+    // Draw safe spots (star marks)
+    const safeSpots = [
+        [1, 6], [6, 1], [8, 6], [13, 6],
+        [6, 8], [6, 13], [8, 13], [13, 8]
+    ];
+    
+    ctx.fillStyle = '#fbbf24';
+    safeSpots.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.arc(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, 8, 0, Math.PI * 2);
+        ctx.fill();
+    });
+}
+
+function drawTokens(color) {
+    const player = gameState.players[color];
+    
+    player.tokens.forEach((token, index) => {
+        const pos = getTokenPosition(color, token, index);
         
-        player.tokens.forEach((token, id) => {
-            const tokenElement = document.querySelector(`.${color}-token[data-id="${id}"]`);
-            
-            if (token.position === -1) {
-                // Token in home
-                const homeArea = document.getElementById(`${color}Home`);
-                if (!homeArea.contains(tokenElement)) {
-                    homeArea.appendChild(tokenElement);
-                }
-            } else if (token.isHome) {
-                // Token reached home
-                tokenElement.style.opacity = '0.5';
-            } else {
-                // Token on board - simplified positioning
-                // In a real implementation, you'd position based on the path
-                tokenElement.style.transform = `translate(${token.position * 10}px, 0)`;
-            }
-        });
+        // Draw token
+        ctx.fillStyle = COLORS[color];
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, TOKEN_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Highlight if it's my turn
+        if (color === myColor && gameState.currentTurn === myColor && gameState.diceValue) {
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+    });
+}
+
+function getTokenPosition(color, token, index) {
+    if (token.position === -1) {
+        // Token in home
+        const homePositions = {
+            red: [[1.5, 1.5], [4.5, 1.5], [1.5, 4.5], [4.5, 4.5]],
+            blue: [[10.5, 1.5], [13.5, 1.5], [10.5, 4.5], [13.5, 4.5]],
+            green: [[1.5, 10.5], [4.5, 10.5], [1.5, 13.5], [4.5, 13.5]],
+            yellow: [[10.5, 10.5], [13.5, 10.5], [10.5, 13.5], [13.5, 13.5]]
+        };
+        
+        const pos = homePositions[color][index];
+        return {
+            x: pos[0] * CELL_SIZE,
+            y: pos[1] * CELL_SIZE
+        };
+    } else if (token.isHome) {
+        // Token reached home (center)
+        return {
+            x: 7.5 * CELL_SIZE,
+            y: 7.5 * CELL_SIZE
+        };
+    } else {
+        // Token on path - simplified path calculation
+        const pathPos = getPathPosition(color, token.position);
+        return {
+            x: pathPos[0] * CELL_SIZE + CELL_SIZE/2,
+            y: pathPos[1] * CELL_SIZE + CELL_SIZE/2
+        };
     }
+}
+
+function getPathPosition(color, position) {
+    // Simplified Ludo path - this is a basic implementation
+    // In a real game, you'd have the complete 52-cell path
+    const basePaths = {
+        red: [[1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6]],
+        blue: [[6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6]],
+        green: [[13, 8], [12, 8], [11, 8], [10, 8], [9, 8], [8, 8]],
+        yellow: [[8, 13], [8, 12], [8, 11], [8, 10], [8, 9], [8, 8]]
+    };
+    
+    const path = basePaths[color];
+    const index = Math.min(position, path.length - 1);
+    return path[index];
 }
 
 function showGameOver(winner) {
     const winnerName = winner.charAt(0).toUpperCase() + winner.slice(1);
     winnerText.textContent = `${winnerName} Wins!`;
-    winnerText.style.color = winner;
+    winnerText.style.color = COLORS[winner];
     gameOverModal.classList.remove('hidden');
 }
 
