@@ -254,140 +254,17 @@ input[type="text"]:focus {
     display: flex;
     gap: 20px;
     align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
-/* Ludo Board */
-.ludo-board {
-    position: relative;
-    width: 600px;
-    height: 600px;
+/* Ludo Canvas */
+#ludoCanvas {
     background: white;
     border: 4px solid #333;
     border-radius: 10px;
-    display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    grid-template-rows: repeat(15, 1fr);
-}
-
-/* Home Areas */
-.home-area {
-    position: absolute;
-    width: 240px;
-    height: 240px;
-    border: 3px solid #333;
-    border-radius: 10px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.red-home {
-    top: 0;
-    left: 0;
-    background: #ef4444;
-}
-
-.blue-home {
-    top: 0;
-    right: 0;
-    background: #3b82f6;
-}
-
-.green-home {
-    bottom: 0;
-    left: 0;
-    background: #10b981;
-}
-
-.yellow-home {
-    bottom: 0;
-    right: 0;
-    background: #f59e0b;
-}
-
-.home-tokens {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    padding: 40px;
-}
-
-/* Tokens */
-.token {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: 3px solid white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.token:hover {
-    transform: scale(1.1);
-}
-
-.token.active {
-    animation: tokenPulse 1s infinite;
-}
-
-@keyframes tokenPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-}
-
-.red-token {
-    background: #dc2626;
-}
-
-.blue-token {
-    background: #2563eb;
-}
-
-.green-token {
-    background: #059669;
-}
-
-.yellow-token {
-    background: #d97706;
-}
-
-/* Center Area */
-.center-area {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120px;
-    height: 120px;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-}
-
-.center-triangle {
-    width: 0;
-    height: 0;
-}
-
-.red-tri {
-    border-left: 60px solid transparent;
-    border-bottom: 60px solid #ef4444;
-}
-
-.blue-tri {
-    border-right: 60px solid transparent;
-    border-bottom: 60px solid #3b82f6;
-}
-
-.green-tri {
-    border-left: 60px solid transparent;
-    border-top: 60px solid #10b981;
-}
-
-.yellow-tri {
-    border-right: 60px solid transparent;
-    border-top: 60px solid #f59e0b;
 }
 
 /* Dice Area */
@@ -396,6 +273,7 @@ input[type="text"]:focus {
     padding: 30px;
     border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
 }
 
 .dice-container {
@@ -403,6 +281,12 @@ input[type="text"]:focus {
     flex-direction: column;
     align-items: center;
     gap: 20px;
+}
+
+.game-info {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.9rem;
 }
 
 .dice {
