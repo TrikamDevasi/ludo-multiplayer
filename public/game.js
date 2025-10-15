@@ -42,9 +42,38 @@ const COLORS = {
     yellow: '#f59e0b'
 };
 
-const CELL_SIZE = 35;
+const CELL_SIZE = 40;
 const BOARD_SIZE = 15;
-const TOKEN_RADIUS = 12;
+const TOKEN_RADIUS = 14;
+
+// Complete 52-cell Ludo path for each color
+const LUDO_PATH = [
+    // Red path starts at [1,6]
+    [1,6], [2,6], [3,6], [4,6], [5,6], [6,5], [6,4], [6,3], [6,2], [6,1], [6,0],
+    [7,0], [8,0], [8,1], [8,2], [8,3], [8,4], [8,5], [9,6], [10,6], [11,6], [12,6], [13,6], [14,6],
+    [14,7], [14,8], [13,8], [12,8], [11,8], [10,8], [9,8], [8,9], [8,10], [8,11], [8,12], [8,13], [8,14],
+    [7,14], [6,14], [6,13], [6,12], [6,11], [6,10], [6,9], [5,8], [4,8], [3,8], [2,8], [1,8], [0,8],
+    [0,7], [0,6]
+];
+
+// Home stretch paths (last 6 cells before center)
+const HOME_STRETCH = {
+    red: [[1,7], [2,7], [3,7], [4,7], [5,7], [6,7]],
+    blue: [[7,1], [7,2], [7,3], [7,4], [7,5], [7,6]],
+    green: [[13,7], [12,7], [11,7], [10,7], [9,7], [8,7]],
+    yellow: [[7,13], [7,12], [7,11], [7,10], [7,9], [7,8]]
+};
+
+// Starting positions on main path for each color
+const START_INDEX = {
+    red: 0,
+    blue: 13,
+    green: 26,
+    yellow: 39
+};
+
+// Safe spots (star positions)
+const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
 
 // Initialize WebSocket
 function connectWebSocket() {
@@ -281,37 +310,29 @@ function moveToken(tokenId) {
 function drawBoard() {
     if (!ctx) return;
     
-    // Clear canvas
-    ctx.fillStyle = '#ffffff';
+    // Clear canvas with beige background
+    ctx.fillStyle = '#fef3c7';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw grid
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.lineWidth = 1;
+    // Draw outer border
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
     
-    for (let i = 0; i <= BOARD_SIZE; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * CELL_SIZE, 0);
-        ctx.lineTo(i * CELL_SIZE, canvas.height);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(0, i * CELL_SIZE);
-        ctx.lineTo(canvas.width, i * CELL_SIZE);
-        ctx.stroke();
-    }
-    
-    // Draw home areas
+    // Draw home areas (4 corners)
     drawHomeArea('red', 0, 0);
     drawHomeArea('blue', 9, 0);
     drawHomeArea('green', 0, 9);
     drawHomeArea('yellow', 9, 9);
     
-    // Draw center
+    // Draw center (winning area)
     drawCenter();
     
-    // Draw path
-    drawPath();
+    // Draw the complete path
+    drawCompletePath();
+    
+    // Draw home stretch paths
+    drawHomeStretchPaths();
     
     // Draw tokens
     if (gameState) {
@@ -326,75 +347,156 @@ function drawHomeArea(color, gridX, gridY) {
     const y = gridY * CELL_SIZE;
     const size = 6 * CELL_SIZE;
     
+    // Draw colored background
     ctx.fillStyle = COLORS[color];
-    ctx.globalAlpha = 0.3;
+    ctx.globalAlpha = 0.4;
     ctx.fillRect(x, y, size, size);
     ctx.globalAlpha = 1;
     
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 3;
+    // Draw border
+    ctx.strokeStyle = COLORS[color];
+    ctx.lineWidth = 4;
     ctx.strokeRect(x, y, size, size);
     
-    // Draw token spots
+    // Draw circular token spots with white circles
     const spots = [
         [1.5, 1.5], [4.5, 1.5],
         [1.5, 4.5], [4.5, 4.5]
     ];
     
-    ctx.fillStyle = COLORS[color];
     spots.forEach(([sx, sy]) => {
+        // White circle background
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(
             x + sx * CELL_SIZE,
             y + sy * CELL_SIZE,
-            TOKEN_RADIUS,
+            TOKEN_RADIUS + 4,
             0,
             Math.PI * 2
         );
         ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
+        
+        // Colored border
+        ctx.strokeStyle = COLORS[color];
+        ctx.lineWidth = 3;
         ctx.stroke();
     });
 }
 
 function drawCenter() {
-    const centerX = 7.5 * CELL_SIZE;
-    const centerY = 7.5 * CELL_SIZE;
+    const centerX = 7 * CELL_SIZE;
+    const centerY = 7 * CELL_SIZE;
     const size = CELL_SIZE;
     
-    // Draw triangles
+    // Draw white center square
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(centerX, centerY, size, size);
+    
+    // Draw colored triangles pointing to center
     const triangles = [
-        { color: 'red', points: [[0, 0], [0, -size], [size, 0]] },
-        { color: 'blue', points: [[0, 0], [size, 0], [0, size]] },
-        { color: 'green', points: [[0, 0], [0, size], [-size, 0]] },
-        { color: 'yellow', points: [[0, 0], [-size, 0], [0, -size]] }
+        { color: 'red', points: [[0, size/2], [size/2, 0], [size/2, size]] },
+        { color: 'blue', points: [[size/2, 0], [size, size/2], [0, size/2]] },
+        { color: 'green', points: [[size, size/2], [size/2, size], [size/2, 0]] },
+        { color: 'yellow', points: [[size/2, size], [0, size/2], [size, size/2]] }
     ];
     
     triangles.forEach(tri => {
         ctx.fillStyle = COLORS[tri.color];
+        ctx.globalAlpha = 0.7;
         ctx.beginPath();
         ctx.moveTo(centerX + tri.points[0][0], centerY + tri.points[0][1]);
         ctx.lineTo(centerX + tri.points[1][0], centerY + tri.points[1][1]);
         ctx.lineTo(centerX + tri.points[2][0], centerY + tri.points[2][1]);
         ctx.closePath();
         ctx.fill();
+        ctx.globalAlpha = 1;
+    });
+    
+    // Draw center circle
+    ctx.fillStyle = '#fbbf24';
+    ctx.beginPath();
+    ctx.arc(centerX + size/2, centerY + size/2, 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#92400e';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function drawCompletePath() {
+    // Draw all path cells
+    LUDO_PATH.forEach((cell, index) => {
+        const x = cell[0] * CELL_SIZE;
+        const y = cell[1] * CELL_SIZE;
+        
+        // Draw cell background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+        
+        // Draw cell border
+        ctx.strokeStyle = '#d1d5db';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+        
+        // Draw safe spots (stars)
+        if (SAFE_SPOTS.includes(index)) {
+            drawStar(x + CELL_SIZE/2, y + CELL_SIZE/2, 8, 5, '#fbbf24');
+        }
+        
+        // Draw starting spots with colored arrows
+        if (index === START_INDEX.red) drawArrow(x, y, 'red');
+        if (index === START_INDEX.blue) drawArrow(x, y, 'blue');
+        if (index === START_INDEX.green) drawArrow(x, y, 'green');
+        if (index === START_INDEX.yellow) drawArrow(x, y, 'yellow');
     });
 }
 
-function drawPath() {
-    // Draw safe spots (star marks)
-    const safeSpots = [
-        [1, 6], [6, 1], [8, 6], [13, 6],
-        [6, 8], [6, 13], [8, 13], [13, 8]
-    ];
-    
-    ctx.fillStyle = '#fbbf24';
-    safeSpots.forEach(([x, y]) => {
-        ctx.beginPath();
-        ctx.arc(x * CELL_SIZE + CELL_SIZE/2, y * CELL_SIZE + CELL_SIZE/2, 8, 0, Math.PI * 2);
-        ctx.fill();
+function drawHomeStretchPaths() {
+    Object.keys(HOME_STRETCH).forEach(color => {
+        HOME_STRETCH[color].forEach(cell => {
+            const x = cell[0] * CELL_SIZE;
+            const y = cell[1] * CELL_SIZE;
+            
+            // Draw colored path
+            ctx.fillStyle = COLORS[color];
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+            ctx.globalAlpha = 1;
+            
+            // Draw border
+            ctx.strokeStyle = COLORS[color];
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+        });
     });
+}
+
+function drawStar(cx, cy, outerRadius, innerRadius, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (i * Math.PI) / 5 - Math.PI / 2;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawArrow(x, y, color) {
+    ctx.fillStyle = COLORS[color];
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(x + CELL_SIZE/2, y + 5);
+    ctx.lineTo(x + CELL_SIZE - 5, y + CELL_SIZE/2);
+    ctx.lineTo(x + CELL_SIZE/2, y + CELL_SIZE - 5);
+    ctx.lineTo(x + 5, y + CELL_SIZE/2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
 }
 
 function drawTokens(color) {
@@ -403,28 +505,55 @@ function drawTokens(color) {
     player.tokens.forEach((token, index) => {
         const pos = getTokenPosition(color, token, index);
         
+        // Draw token shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.beginPath();
+        ctx.arc(pos.x + 2, pos.y + 2, TOKEN_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+        
         // Draw token
         ctx.fillStyle = COLORS[color];
         ctx.beginPath();
         ctx.arc(pos.x, pos.y, TOKEN_RADIUS, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
+        // Draw white border
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
         ctx.stroke();
         
-        // Highlight if it's my turn
+        // Draw inner circle for 3D effect
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.beginPath();
+        ctx.arc(pos.x - 2, pos.y - 2, TOKEN_RADIUS / 3, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Highlight if it's my turn and can move
         if (color === myColor && gameState.currentTurn === myColor && gameState.diceValue) {
-            ctx.strokeStyle = '#fbbf24';
-            ctx.lineWidth = 3;
-            ctx.stroke();
+            if (canTokenMove(token, gameState.diceValue)) {
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 4;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, TOKEN_RADIUS + 5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
         }
     });
 }
 
+function canTokenMove(token, diceValue) {
+    // Token in home can only move on 6
+    if (token.position === -1) return diceValue === 6;
+    // Token on board can move if not finished
+    if (!token.isHome) return true;
+    return false;
+}
+
 function getTokenPosition(color, token, index) {
     if (token.position === -1) {
-        // Token in home
+        // Token in home area
         const homePositions = {
             red: [[1.5, 1.5], [4.5, 1.5], [1.5, 4.5], [4.5, 4.5]],
             blue: [[10.5, 1.5], [13.5, 1.5], [10.5, 4.5], [13.5, 4.5]],
@@ -438,13 +567,13 @@ function getTokenPosition(color, token, index) {
             y: pos[1] * CELL_SIZE
         };
     } else if (token.isHome) {
-        // Token reached home (center)
+        // Token reached winning center
         return {
-            x: 7.5 * CELL_SIZE,
-            y: 7.5 * CELL_SIZE
+            x: 7 * CELL_SIZE + CELL_SIZE/2,
+            y: 7 * CELL_SIZE + CELL_SIZE/2
         };
     } else {
-        // Token on path - simplified path calculation
+        // Token on path
         const pathPos = getPathPosition(color, token.position);
         return {
             x: pathPos[0] * CELL_SIZE + CELL_SIZE/2,
@@ -454,18 +583,21 @@ function getTokenPosition(color, token, index) {
 }
 
 function getPathPosition(color, position) {
-    // Simplified Ludo path - this is a basic implementation
-    // In a real game, you'd have the complete 52-cell path
-    const basePaths = {
-        red: [[1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6]],
-        blue: [[6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6]],
-        green: [[13, 8], [12, 8], [11, 8], [10, 8], [9, 8], [8, 8]],
-        yellow: [[8, 13], [8, 12], [8, 11], [8, 10], [8, 9], [8, 8]]
-    };
+    // Check if token is in home stretch (last 6 cells)
+    if (position >= 51) {
+        const homeStretchIndex = position - 51;
+        if (homeStretchIndex < HOME_STRETCH[color].length) {
+            return HOME_STRETCH[color][homeStretchIndex];
+        }
+        // At center
+        return [7, 7];
+    }
     
-    const path = basePaths[color];
-    const index = Math.min(position, path.length - 1);
-    return path[index];
+    // Calculate position on main path
+    const startIndex = START_INDEX[color];
+    const actualIndex = (startIndex + position) % 52;
+    
+    return LUDO_PATH[actualIndex];
 }
 
 function showGameOver(winner) {
