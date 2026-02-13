@@ -3,19 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Play Ludo Multiplayer - Classic board game online with friends in real-time">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#4CAF50">
-    <title>Ludo Multiplayer</title>
+    <meta name="theme-color" content="#667eea">
+    <title>Ludo Multiplayer - Play with Friends</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Loading Spinner -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>Connecting to server...</p>
+    </div>
+
     <div class="container">
         <h1>🎲 Ludo Multiplayer</h1>
         
         <!-- Connection Status -->
-        <div id="connectionStatus" class="status-bar">
-            <span class="status-dot"></span>
+        <div id="connectionStatus" class="status-bar" role="status" aria-live="polite">
+            <span class="status-dot" aria-hidden="true"></span>
             <span id="statusText">Connecting...</span>
         </div>
 
@@ -24,11 +32,20 @@
             <div class="menu-card">
                 <h2>🎲 Welcome to Ludo!</h2>
                 <p class="game-description">Classic board game - Race your tokens to the center!</p>
-                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20">
+                
+                <label for="playerNameInput" class="visually-hidden">Your Name</label>
+                <input 
+                    type="text" 
+                    id="playerNameInput" 
+                    placeholder="Enter your name" 
+                    maxlength="20"
+                    aria-label="Player name"
+                    autocomplete="off"
+                >
                 
                 <div class="setting-group">
-                    <label>Number of Players:</label>
-                    <select id="playerCountSelect" class="setting-select">
+                    <label for="playerCountSelect">Number of Players:</label>
+                    <select id="playerCountSelect" class="setting-select" aria-label="Select number of players">
                         <option value="2" selected>2 Players</option>
                         <option value="3">3 Players</option>
                         <option value="4">4 Players</option>
@@ -36,13 +53,25 @@
                 </div>
 
                 <div class="button-group">
-                    <button id="createRoomBtn" class="btn btn-primary">Create Room</button>
-                    <button id="joinRoomBtn" class="btn btn-secondary">Join Room</button>
+                    <button id="createRoomBtn" class="btn btn-primary" aria-label="Create new game room">
+                        <span class="btn-icon">➕</span> Create Room
+                    </button>
+                    <button id="joinRoomBtn" class="btn btn-secondary" aria-label="Join existing game room">
+                        <span class="btn-icon">🚪</span> Join Room
+                    </button>
                 </div>
 
                 <div id="joinRoomSection" class="hidden">
-                    <input type="text" id="roomIdInput" placeholder="Enter Room ID" maxlength="6">
-                    <button id="joinRoomConfirmBtn" class="btn btn-success">Join</button>
+                    <label for="roomIdInput" class="visually-hidden">Room ID</label>
+                    <input 
+                        type="text" 
+                        id="roomIdInput" 
+                        placeholder="Enter Room ID" 
+                        maxlength="6"
+                        aria-label="Room ID"
+                        autocomplete="off"
+                    >
+                    <button id="joinRoomConfirmBtn" class="btn btn-success">Join Game</button>
                 </div>
             </div>
         </div>
@@ -50,42 +79,60 @@
         <!-- Waiting Screen -->
         <div id="waitingScreen" class="screen">
             <div class="waiting-card">
-                <h2>Room Created!</h2>
+                <h2>🎮 Room Created!</h2>
                 <p>Share this Room ID with your friends:</p>
                 <div class="room-id-display">
-                    <span id="displayRoomId"></span>
-                    <button id="copyRoomIdBtn" class="btn-icon" title="Copy Room ID">📋</button>
+                    <span id="displayRoomId" aria-label="Room ID"></span>
+                    <button id="copyRoomIdBtn" class="btn-icon" title="Copy Room ID" aria-label="Copy room ID to clipboard">
+                        📋
+                    </button>
                 </div>
                 
                 <div id="playersWaiting">
                     <h3>Players:</h3>
-                    <div id="playersList"></div>
+                    <div id="playersList" role="list"></div>
                 </div>
 
-                <button id="startGameBtn" class="btn btn-success">Start Game</button>
+                <button id="startGameBtn" class="btn btn-success" disabled>
+                    <span class="btn-icon">🎮</span> Start Game
+                </button>
+                <p class="waiting-hint">Waiting for more players...</p>
             </div>
         </div>
 
         <!-- Game Screen -->
         <div id="gameScreen" class="screen">
             <div class="game-header">
-                <div class="players-info" id="playersInfo"></div>
-                <div class="turn-indicator">
+                <div class="players-info" id="playersInfo" role="list"></div>
+                <div class="turn-indicator" role="status" aria-live="assertive">
                     <span id="turnText">Waiting...</span>
                 </div>
             </div>
 
             <div class="game-container">
                 <!-- Ludo Board using Canvas -->
-                <canvas id="ludoCanvas" width="600" height="600"></canvas>
+                <canvas 
+                    id="ludoCanvas" 
+                    width="600" 
+                    height="600"
+                    aria-label="Ludo game board"
+                    role="img"
+                ></canvas>
 
                 <!-- Dice Area -->
                 <div class="dice-area">
                     <div class="dice-container">
-                        <div id="dice" class="dice">
+                        <div id="dice" class="dice" role="img" aria-label="Dice">
                             <div class="dice-face">?</div>
                         </div>
-                        <button id="rollDiceBtn" class="btn btn-primary">Roll Dice</button>
+                        <button 
+                            id="rollDiceBtn" 
+                            class="btn btn-primary" 
+                            aria-label="Roll dice"
+                        >
+                            🎲 Roll Dice
+                        </button>
+                        <div id="diceResult" class="dice-result hidden"></div>
                         <div id="gameInfo" class="game-info">
                             <p><strong>How to Play:</strong></p>
                             <p>🎲 Roll 6 to start</p>
@@ -98,13 +145,19 @@
         </div>
 
         <!-- Game Over Modal -->
-        <div id="gameOverModal" class="modal hidden">
+        <div id="gameOverModal" class="modal hidden" role="dialog" aria-labelledby="winnerText">
             <div class="modal-content">
-                <div class="winner-icon">🏆</div>
+                <div class="winner-icon" aria-hidden="true">🏆</div>
                 <h2 id="winnerText">Player Wins!</h2>
-                <button id="backToMenuBtn" class="btn btn-primary">Back to Menu</button>
+                <div id="gameStats" class="game-stats"></div>
+                <button id="backToMenuBtn" class="btn btn-primary">
+                    <span class="btn-icon">🏠</span> Back to Menu
+                </button>
             </div>
         </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
     </div>
 
     <script src="game.js"></script>
