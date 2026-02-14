@@ -462,3 +462,40 @@ function drawCenter() {
     ctx.fillStyle = COLORS.yellow;
     ctx.fill();
 }
+
+function drawSafeSpots() {
+    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+
+    SAFE_SPOTS.forEach(index => {
+        const [x, y] = LUDO_PATH[index];
+        drawStar(x * CELL_SIZE + CELL_SIZE / 2, y * CELL_SIZE + CELL_SIZE / 2, 5, CELL_SIZE / 3, CELL_SIZE / 6);
+    });
+}
+
+function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
+    let rot = Math.PI / 2 * 3;
+    let x = cx;
+    let y = cy;
+    let step = Math.PI / spikes;
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - outerRadius);
+    for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y);
+        rot += step;
+    }
+    ctx.lineTo(cx, cy - outerRadius);
+    ctx.closePath();
+    ctx.fill();
+
+    // Determine color of star
+    // Safe spots: 0 (Red start), 8, 13 (Blue start), 21, 26 (Green start), 34, 39 (Yellow start), 47
+    // Actually safe spots are usually just visual.
+}
