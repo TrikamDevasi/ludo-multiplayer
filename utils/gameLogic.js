@@ -4,6 +4,19 @@ function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+const START_INDEX = {
+    red: 0,
+    blue: 13,
+    green: 26,
+    yellow: 39
+};
+
+function getGlobalPosition(relativePos, color) {
+    if (relativePos < 0 || relativePos >= 52) return -1; // Base or Safe/Home Stretch
+    const startIndex = START_INDEX[color];
+    return (startIndex + relativePos) % 52;
+}
+
 function createInitialGameState(playerCount) {
     const players = {};
 
@@ -33,5 +46,7 @@ function createInitialGameState(playerCount) {
 module.exports = {
     generateRoomId,
     createInitialGameState,
-    COLORS
+    COLORS,
+    START_INDEX,
+    getGlobalPosition
 };
