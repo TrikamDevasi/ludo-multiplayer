@@ -495,7 +495,79 @@ function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
     ctx.closePath();
     ctx.fill();
 
-    // Determine color of star
-    // Safe spots: 0 (Red start), 8, 13 (Blue start), 21, 26 (Green start), 34, 39 (Yellow start), 47
-    // Actually safe spots are usually just visual.
+    // actually safe spots are usually just visual.
+}
+
+function getCoordinates(position, color) {
+    // Base position (position -1)
+    if (position === -1) return null; // handled separately in drawTokens
+
+    // Home Stretch (52-56) & Goal (57)
+    if (position >= 52) {
+        if (position === 57) return { x: 7.5, y: 7.5 }; // Goal center
+
+        const index = position - 52;
+        if (HOME_STRETCH[color] && index < HOME_STRETCH[color].length) {
+            const [x, y] = HOME_STRETCH[color][index];
+            return { x: x + 0.5, y: y + 0.5 };
+        }
+        return { x: 7.5, y: 7.5 }; // Fallback
+    }
+
+    // Main Path
+    const startIndex = START_INDEX[color];
+    const globalIndex = (startIndex + position) % 52;
+    const [x, y] = LUDO_PATH[globalIndex];
+    return { x: x + 0.5, y: y + 0.5 };
+}
+
+function drawTokens() {
+    Object.keys(gameState.players).forEach(color => {
+        const player = gameState.players[color];
+        player.tokens.forEach(token => {
+            let x, y;
+
+            if (token.position === -1) {
+                // Base positions
+                const baseOffsets = [
+                    { dx: 1.5, dy: 1.5 }, { dx: 4.5, dy: 1.5 },
+                    { dx: 1.5, dy: 4.5 }, { dx: 4.5, dy: 4.5 }
+                ];
+
+                // Base origins
+                let bx = 0, by = 0;
+                if (color === 'blue') bx = 9;
+                else if (color === 'green') { bx = 9; by = 9; }
+                else if (color === 'yellow') by = 9;
+
+                x = (bx + baseOffsets[token.id].dx) * CELL_SIZE; // Pixel coords
+                y = (by + baseOffsets[token.id].dy) * CELL_SIZE;
+            } else {
+                const coords = getCoordinates(token.position, color);
+                x = coords.x * CELL_SIZE;
+                y = coords.y * CELL_SIZE;
+
+                // Handle multiple tokens on same spot?
+                // For now, just draw on top. Ideally offset them.
+            }
+
+            drawToken(x, y, color, token.isSafe);
+        });
+    });
+}
+
+function drawToken(x, y, color, isSafe) {
+    ctx.beginPath();
+    ctx.arc(x, y, TOKEN_RADIUS, 0, Math.PI * 2);
+    ctx.fillStyle = COLORS[color];
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#fff';
+    ctx.stroke();
+
+    // Inner bevel/shine
+    ctx.beginPath();
+    ctx.arc(x, y, TOKEN_RADIUS * 0.7, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.stroke();
 }
