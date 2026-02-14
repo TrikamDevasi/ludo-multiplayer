@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
-const { generateRoomId } = require('./utils/gameLogic');
+const { generateRoomId, createInitialGameState, COLORS } = require('./utils/gameLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,7 +13,7 @@ app.use(express.static('public'));
 const PORT = process.env.PORT || 3000;
 
 const rooms = new Map();
-const COLORS = ['red', 'blue', 'green', 'yellow'];
+// const COLORS = ['red', 'blue', 'green', 'yellow']; // Removed
 
 const START_INDEX = {
     red: 0,
