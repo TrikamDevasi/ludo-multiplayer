@@ -13,13 +13,26 @@ const PORT = process.env.PORT || 3000;
 const rooms = new Map();
 const COLORS = ['red', 'blue', 'green', 'yellow'];
 
+const START_INDEX = {
+    red: 0,
+    blue: 13,
+    green: 26,
+    yellow: 39
+};
+
+function getGlobalPosition(relativePos, color) {
+    if (relativePos < 0 || relativePos >= 52) return -1; // Base or Safe/Home Stretch
+    const startIndex = START_INDEX[color];
+    return (startIndex + relativePos) % 52;
+}
+
 function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 function createInitialGameState(playerCount) {
     const players = {};
-    
+
     for (let i = 0; i < playerCount; i++) {
         const color = COLORS[i];
         players[color] = {
@@ -32,7 +45,7 @@ function createInitialGameState(playerCount) {
             score: 0
         };
     }
-    
+
     return {
         players,
         currentTurn: COLORS[0],
@@ -45,7 +58,7 @@ function createInitialGameState(playerCount) {
 
 wss.on('connection', (ws) => {
     console.log('New client connected');
-    
+
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
@@ -54,7 +67,7 @@ wss.on('connection', (ws) => {
             console.error('Error parsing message:', error);
         }
     });
-    
+
     ws.on('close', () => {
         handleDisconnect(ws);
     });
@@ -94,11 +107,11 @@ function createRoom(ws, data) {
         maxPlayers: data.playerCount || 2,
         gameState: null
     };
-    
+
     rooms.set(roomId, room);
     ws.roomId = roomId;
     ws.playerColor = COLORS[0];
-    
+
     ws.send(JSON.stringify({
         type: 'room_created',
         roomId: roomId,
@@ -108,17 +121,17 @@ function createRoom(ws, data) {
 
 function joinRoom(ws, data) {
     const room = rooms.get(data.roomId);
-    
+
     if (!room) {
         ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
         return;
     }
-    
+
     if (room.players.length >= room.maxPlayers) {
         ws.send(JSON.stringify({ type: 'error', message: 'Room is full' }));
         return;
     }
-    
+
     const color = COLORS[room.players.length];
     room.players.push({
         ws,
@@ -126,10 +139,10 @@ function joinRoom(ws, data) {
         color: color,
         ready: false
     });
-    
+
     ws.roomId = data.roomId;
     ws.playerColor = color;
-    
+
     broadcastToRoom(room, {
         type: 'player_joined',
         players: room.players.map(p => ({ name: p.name, color: p.color, ready: p.ready }))
@@ -139,10 +152,10 @@ function joinRoom(ws, data) {
 function startGame(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || room.host !== ws) return;
-    
+
     room.gameState = createInitialGameState(room.players.length);
     room.gameState.gameStarted = true;
-    
+
     broadcastToRoom(room, {
         type: 'game_started',
         gameState: room.gameState,
@@ -153,27 +166,27 @@ function startGame(ws) {
 function rollDice(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || !room.gameState) return;
-    
+
     const gameState = room.gameState;
-    
+
     if (gameState.currentTurn !== ws.playerColor) {
         ws.send(JSON.stringify({ type: 'error', message: 'Not your turn' }));
         return;
     }
-    
+
     const diceValue = Math.floor(Math.random() * 6) + 1;
     gameState.diceValue = diceValue;
-    
+
     broadcastToRoom(room, {
         type: 'dice_rolled',
         diceValue: diceValue,
         currentTurn: gameState.currentTurn
     });
-    
+
     // Check if player has valid moves
     setTimeout(() => {
         const hasValidMoves = checkValidMoves(gameState, ws.playerColor, diceValue);
-        
+
         if (!hasValidMoves) {
             nextTurn(room);
         }
@@ -182,7 +195,7 @@ function rollDice(ws) {
 
 function checkValidMoves(gameState, color, diceValue) {
     const player = gameState.players[color];
-    
+
     for (let token of player.tokens) {
         if (token.position === -1 && diceValue === 6) {
             return true;
@@ -191,20 +204,20 @@ function checkValidMoves(gameState, color, diceValue) {
             return true;
         }
     }
-    
+
     return false;
 }
 
 function moveToken(ws, data) {
     const room = rooms.get(ws.roomId);
     if (!room || !room.gameState) return;
-    
+
     const gameState = room.gameState;
     const player = gameState.players[ws.playerColor];
     const token = player.tokens[data.tokenId];
-    
+
     if (!token) return;
-    
+
     // Bring token out
     if (token.position === -1 && gameState.diceValue === 6) {
         token.position = 0;
@@ -213,37 +226,37 @@ function moveToken(ws, data) {
     // Move token
     else if (token.position >= 0 && !token.isHome) {
         const newPosition = token.position + gameState.diceValue;
-        
+
         if (newPosition >= 52) {
             token.isHome = true;
             player.score++;
         } else {
             token.position = newPosition;
-            
+
             // Check for capture
             checkCapture(gameState, ws.playerColor, newPosition);
         }
     }
-    
+
     broadcastToRoom(room, {
         type: 'token_moved',
         color: ws.playerColor,
         tokenId: data.tokenId,
         gameState: gameState
     });
-    
+
     // Check win condition
     if (player.score === 4) {
         gameState.gameOver = true;
         gameState.winner = ws.playerColor;
-        
+
         broadcastToRoom(room, {
             type: 'game_over',
             winner: ws.playerColor
         });
         return;
     }
-    
+
     // Next turn (unless rolled 6)
     if (gameState.diceValue !== 6) {
         nextTurn(room);
@@ -254,12 +267,12 @@ function moveToken(ws, data) {
 
 function checkCapture(gameState, currentColor, position) {
     const safePositions = [0, 8, 13, 21, 26, 34, 39, 47];
-    
+
     if (safePositions.includes(position)) return;
-    
+
     for (let color in gameState.players) {
         if (color === currentColor) continue;
-        
+
         const player = gameState.players[color];
         for (let token of player.tokens) {
             if (token.position === position && !token.isSafe) {
@@ -275,10 +288,10 @@ function nextTurn(room) {
     const colors = Object.keys(gameState.players);
     const currentIndex = colors.indexOf(gameState.currentTurn);
     const nextIndex = (currentIndex + 1) % colors.length;
-    
+
     gameState.currentTurn = colors[nextIndex];
     gameState.diceValue = null;
-    
+
     broadcastToRoom(room, {
         type: 'turn_changed',
         currentTurn: gameState.currentTurn,
@@ -297,7 +310,7 @@ function handleDisconnect(ws) {
         const room = rooms.get(ws.roomId);
         if (room) {
             room.players = room.players.filter(p => p.ws !== ws);
-            
+
             if (room.players.length === 0) {
                 rooms.delete(ws.roomId);
             } else {
