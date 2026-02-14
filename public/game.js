@@ -571,3 +571,66 @@ function drawToken(x, y, color, isSafe) {
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.stroke();
 }
+
+function handleCanvasClick(event) {
+    if (!gameState || gameState.currentTurn !== myColor || !gameState.diceValue) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Check which token was clicked
+    const player = gameState.players[myColor];
+
+    // Scale coordinates if canvas is resized via CSS
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const clickX = x * scaleX;
+    const clickY = y * scaleY;
+
+    for (let token of player.tokens) {
+        let tx, ty;
+        if (token.position === -1) {
+            // Base logic copy-paste from drawTokens
+            const baseOffsets = [
+                { dx: 1.5, dy: 1.5 }, { dx: 4.5, dy: 1.5 },
+                { dx: 1.5, dy: 4.5 }, { dx: 4.5, dy: 4.5 }
+            ];
+            let bx = 0, by = 0;
+            if (myColor === 'blue') bx = 9;
+            else if (myColor === 'green') { bx = 9; by = 9; }
+            else if (myColor === 'yellow') by = 9;
+
+            tx = (bx + baseOffsets[token.id].dx) * CELL_SIZE;
+            ty = (by + baseOffsets[token.id].dy) * CELL_SIZE;
+        } else {
+            const coords = getCoordinates(token.position, myColor);
+            tx = coords.x * CELL_SIZE;
+            ty = coords.y * CELL_SIZE;
+        }
+
+        const distance = Math.sqrt(Math.pow(clickX - tx, 2) + Math.pow(clickY - ty, 2));
+
+        if (distance <= TOKEN_RADIUS * 1.5) { // Slightly larger hit area
+            sendMessage({
+                type: 'move_token',
+                tokenId: token.id
+            });
+            break;
+        }
+    }
+}
+
+// Add event listener
+document.addEventListener('DOMContentLoaded', () => {
+    // Other init logic...
+    // Canvas click listener will be added when canvas is created?
+    // BETTER: Add it to the document body or container, delegating to canvas, OR just add it when showGameScreen is called.
+    // Actually, showGameScreen creates/gets the canvas element. I should add listener there or statically.
+    // The element exists in HTML.
+    const canvasEl = document.getElementById('ludoCanvas');
+    if (canvasEl) {
+        canvasEl.addEventListener('click', handleCanvasClick);
+    }
+});
