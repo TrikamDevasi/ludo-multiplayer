@@ -696,6 +696,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (copyRoomIdBtn) {
+        copyRoomIdBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(currentRoomId || '').then(() => {
+                showToast('Room ID copied!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy Room ID', 'error');
+                console.error('Copy failed', err);
+            });
+        });
+    }
+
     if (backToMenuBtn) {
         backToMenuBtn.addEventListener('click', () => {
             window.location.reload();
