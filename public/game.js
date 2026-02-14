@@ -684,6 +684,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', () => {
+            sendMessage({ type: 'start_game' });
+        });
+    }
+
+    if (rollDiceBtn) {
+        rollDiceBtn.addEventListener('click', () => {
+            sendMessage({ type: 'roll_dice' });
+        });
+    }
+
     if (backToMenuBtn) {
         backToMenuBtn.addEventListener('click', () => {
             window.location.reload();
