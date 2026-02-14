@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
+const { generateRoomId } = require('./utils/gameLogic');
+
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
@@ -24,10 +26,6 @@ function getGlobalPosition(relativePos, color) {
     if (relativePos < 0 || relativePos >= 52) return -1; // Base or Safe/Home Stretch
     const startIndex = START_INDEX[color];
     return (startIndex + relativePos) % 52;
-}
-
-function generateRoomId() {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 function createInitialGameState(playerCount) {
