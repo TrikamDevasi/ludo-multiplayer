@@ -633,4 +633,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (canvasEl) {
         canvasEl.addEventListener('click', handleCanvasClick);
     }
+
+    // UI Event Listeners
+    if (backToMenuBtn) {
+        backToMenuBtn.addEventListener('click', () => {
+            window.location.reload();
+        });
+    }
 });
