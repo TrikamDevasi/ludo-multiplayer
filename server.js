@@ -267,19 +267,30 @@ function moveToken(ws, data) {
     }
 }
 
-function checkCapture(gameState, currentColor, position) {
-    const safePositions = [0, 8, 13, 21, 26, 34, 39, 47];
+function checkCapture(gameState, currentColor, relativePos) {
+    const myGlobalPos = getGlobalPosition(relativePos, currentColor);
 
-    if (safePositions.includes(position)) return;
+    // If in safe spot (global) or safe zone (base/home stretch), no capture
+    if (myGlobalPos === -1) return;
+
+    const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
+    if (SAFE_SPOTS.includes(myGlobalPos)) return;
 
     for (let color in gameState.players) {
         if (color === currentColor) continue;
 
         const player = gameState.players[color];
         for (let token of player.tokens) {
-            if (token.position === position && !token.isSafe) {
-                token.position = -1;
-                token.isSafe = true;
+            if (token.position !== -1 && !token.isHome) {
+                const theirGlobalPos = getGlobalPosition(token.position, color);
+
+                if (theirGlobalPos === myGlobalPos) {
+                    // Capture!
+                    token.position = -1;
+                    token.isSafe = true;
+                    // Provide extra turn reward? (Standard Ludo rule)
+                    // For now, minimal changes.
+                }
             }
         }
     }
