@@ -419,3 +419,46 @@ function drawHomeStretch() {
     ctx.fillStyle = COLORS.yellow;
     for (let i = 9; i < 14; i++) ctx.fillRect(7 * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 }
+
+function drawCenter() {
+    // Draw center triangles
+    const cx = 7.5 * CELL_SIZE;
+    const cy = 7.5 * CELL_SIZE;
+    const halfSize = 1.5 * CELL_SIZE;
+
+    // Red Triangle (Left)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx - halfSize, cy - halfSize);
+    ctx.lineTo(cx - halfSize, cy + halfSize);
+    ctx.closePath();
+    ctx.fillStyle = COLORS.red;
+    ctx.fill();
+
+    // Blue Triangle (Top)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx - halfSize, cy - halfSize);
+    ctx.lineTo(cx + halfSize, cy - halfSize);
+    ctx.closePath();
+    ctx.fillStyle = COLORS.blue;
+    ctx.fill();
+
+    // Green Triangle (Right)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + halfSize, cy - halfSize);
+    ctx.lineTo(cx + halfSize, cy + halfSize);
+    ctx.closePath();
+    ctx.fillStyle = COLORS.green;
+    ctx.fill();
+
+    // Yellow Triangle (Bottom)
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx - halfSize, cy + halfSize);
+    ctx.lineTo(cx + halfSize, cy + halfSize);
+    ctx.closePath();
+    ctx.fillStyle = COLORS.yellow;
+    ctx.fill();
+}
