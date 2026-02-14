@@ -713,6 +713,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Enter key support
+    [playerNameInput, roomIdInput].forEach(input => {
+        if (input) {
+            input.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    if (input === roomIdInput || (input === playerNameInput && !joinRoomSection.classList.contains('hidden'))) {
+                        if (joinRoomConfirmBtn) joinRoomConfirmBtn.click();
+                    } else if (input === playerNameInput) {
+                        if (createRoomBtn) createRoomBtn.click();
+                    }
+                }
+            });
+        }
+    });
+
     // Auto-focus name input
     if (playerNameInput) playerNameInput.focus();
 
