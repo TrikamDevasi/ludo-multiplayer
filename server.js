@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
-const { generateRoomId, createInitialGameState, COLORS, START_INDEX, getGlobalPosition } = require('./utils/gameLogic');
+const { generateRoomId, createInitialGameState, COLORS, START_INDEX, getGlobalPosition, checkValidMoves, checkCapture } = require('./utils/gameLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -158,21 +158,8 @@ function rollDice(ws) {
     }, 1500);
 }
 
-function checkValidMoves(gameState, color, diceValue) {
-    const player = gameState.players[color];
 
-    for (let token of player.tokens) {
-        if (token.position === -1) {
-            if (diceValue === 6) return true;
-        } else if (!token.isHome) {
-            if (token.position + diceValue <= 57) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
+// checkValidMoves moved to utils/gameLogic.js
 
 function moveToken(ws, data) {
     const room = rooms.get(ws.roomId);
@@ -232,34 +219,8 @@ function moveToken(ws, data) {
     }
 }
 
-function checkCapture(gameState, currentColor, relativePos) {
-    const myGlobalPos = getGlobalPosition(relativePos, currentColor);
 
-    // If in safe spot (global) or safe zone (base/home stretch), no capture
-    if (myGlobalPos === -1) return;
-
-    const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
-    if (SAFE_SPOTS.includes(myGlobalPos)) return;
-
-    for (let color in gameState.players) {
-        if (color === currentColor) continue;
-
-        const player = gameState.players[color];
-        for (let token of player.tokens) {
-            if (token.position !== -1 && !token.isHome) {
-                const theirGlobalPos = getGlobalPosition(token.position, color);
-
-                if (theirGlobalPos === myGlobalPos) {
-                    // Capture!
-                    token.position = -1;
-                    token.isSafe = true;
-                    // Provide extra turn reward? (Standard Ludo rule)
-                    // For now, minimal changes.
-                }
-            }
-        }
-    }
-}
+// checkCapture moved to utils/gameLogic.js
 
 function nextTurn(room) {
     const gameState = room.gameState;
