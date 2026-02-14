@@ -336,3 +336,9 @@ function showDiceRoll(value) {
         diceDiv.innerHTML = `<div class="dice-face">${value}</div>`;
     }, 600);
 }
+
+function showGameOver(winner, stats) {
+    gameOverModal.classList.remove('hidden');
+    winnerText.textContent = `${winner.toUpperCase()} WINS!`;
+    winnerText.style.color = COLORS[winner];
+}
