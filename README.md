@@ -49,3 +49,7 @@ Visit: http://localhost:3000
 ---
 
 **Made with ❤️ for board game lovers!**
+
+## Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment instructions.
