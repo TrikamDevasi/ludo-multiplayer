@@ -197,11 +197,12 @@ function checkValidMoves(gameState, color, diceValue) {
     const player = gameState.players[color];
 
     for (let token of player.tokens) {
-        if (token.position === -1 && diceValue === 6) {
-            return true;
-        }
-        if (token.position >= 0 && !token.isHome) {
-            return true;
+        if (token.position === -1) {
+            if (diceValue === 6) return true;
+        } else if (!token.isHome) {
+            if (token.position + diceValue <= 57) {
+                return true;
+            }
         }
     }
 
