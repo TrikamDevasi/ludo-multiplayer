@@ -342,3 +342,58 @@ function showGameOver(winner, stats) {
     winnerText.textContent = `${winner.toUpperCase()} WINS!`;
     winnerText.style.color = COLORS[winner];
 }
+
+// ===== Canvas Functions =====
+function drawBoard() {
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Ludo Board Grid
+    drawCells();
+    drawHomeStretch();
+    drawCenter();
+    drawSafeSpots();
+
+    if (gameState) {
+        drawTokens();
+    }
+}
+
+function drawCells() {
+    // Draw 15x15 Grid with colored zones
+    for (let x = 0; x < BOARD_SIZE; x++) {
+        for (let y = 0; y < BOARD_SIZE; y++) {
+            // Determine cell color based on Ludo board layout
+            let fillStyle = '#fff';
+
+            // Corners (Home Bases)
+            if (x < 6 && y < 6) fillStyle = COLORS.red;
+            else if (x > 8 && y < 6) fillStyle = COLORS.blue; // Green is usually right-top in some versions, but standard Ludo: Red (TL), Green (TR), Yellow (BR), Blue (BL)?
+            // Wait, let's stick to standard Ludo based on START_INDEX:
+            // Red: 0 (TL?), Blue: 13 (TR?), Green: 26 (BR?), Yellow: 39 (BL?)
+            // Actually, based on `START_INDEX`:
+            // Red starts at 0 -> Top Left Path
+            // Blue starts at 13 -> Top Right Path ?? 
+            // Let's create a generic "Base" drawer instead of loop for corners.
+
+            // Basic Path Cells
+            ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+        }
+    }
+
+    // Draw Bases (replaces corners)
+    drawBase(0, 0, COLORS.red);
+    drawBase(9, 0, COLORS.blue); // Wait, 9? 6-8 is path. So 9-14 is base.
+    drawBase(9, 9, COLORS.yellow);
+    drawBase(0, 9, COLORS.green);
+}
+
+function drawBase(x, y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, 6 * CELL_SIZE, 6 * CELL_SIZE);
+
+    // Inner white square
+    ctx.fillStyle = '#fff';
+    ctx.fillRect((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 4 * CELL_SIZE, 4 * CELL_SIZE);
+}
