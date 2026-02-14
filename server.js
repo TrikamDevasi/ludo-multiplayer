@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
-const { generateRoomId, createInitialGameState, COLORS } = require('./utils/gameLogic');
+const { generateRoomId, createInitialGameState, COLORS, START_INDEX, getGlobalPosition } = require('./utils/gameLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,46 +13,13 @@ app.use(express.static('public'));
 const PORT = process.env.PORT || 3000;
 
 const rooms = new Map();
+
 // const COLORS = ['red', 'blue', 'green', 'yellow']; // Removed
 
-const START_INDEX = {
-    red: 0,
-    blue: 13,
-    green: 26,
-    yellow: 39
-};
+// START_INDEX and getGlobalPosition moved to utils/gameLogic.js
 
-function getGlobalPosition(relativePos, color) {
-    if (relativePos < 0 || relativePos >= 52) return -1; // Base or Safe/Home Stretch
-    const startIndex = START_INDEX[color];
-    return (startIndex + relativePos) % 52;
-}
 
-function createInitialGameState(playerCount) {
-    const players = {};
-
-    for (let i = 0; i < playerCount; i++) {
-        const color = COLORS[i];
-        players[color] = {
-            tokens: [
-                { id: 0, position: -1, isHome: false, isSafe: true },
-                { id: 1, position: -1, isHome: false, isSafe: true },
-                { id: 2, position: -1, isHome: false, isSafe: true },
-                { id: 3, position: -1, isHome: false, isSafe: true }
-            ],
-            score: 0
-        };
-    }
-
-    return {
-        players,
-        currentTurn: COLORS[0],
-        diceValue: null,
-        gameStarted: false,
-        gameOver: false,
-        winner: null
-    };
-}
+// function createInitialGameState(playerCount) { ... } // Removed
 
 wss.on('connection', (ws) => {
     console.log('New client connected');
