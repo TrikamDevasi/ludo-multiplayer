@@ -291,3 +291,48 @@ function updatePlayersList(players) {
         playersList.appendChild(item);
     });
 }
+
+function showGameScreen(players) {
+    waitingScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+
+    // Initialize canvas
+    canvas = document.getElementById('ludoCanvas');
+    ctx = canvas.getContext('2d');
+
+    // Render players info
+    playersInfo.innerHTML = '';
+    players.forEach(player => {
+        const div = document.createElement('div');
+        div.className = `player-info ${player.color === gameState.currentTurn ? 'active' : ''}`;
+        div.id = `player-${player.color}`;
+        div.innerHTML = `
+            <div class="player-color-dot" style="background-color: ${COLORS[player.color]}"></div>
+            <span>${player.name}</span>
+            <span id="score-${player.color}" style="margin-left: 5px; font-weight: bold;">(0)</span>
+        `;
+        playersInfo.appendChild(div);
+    });
+
+    drawBoard();
+}
+
+function updateTurn(currentTurn) {
+    turnText.textContent = currentTurn === myColor ? "Your Turn!" : `${currentTurn.toUpperCase()}'s Turn`;
+    turnText.className = currentTurn === myColor ? 'turn-indicator my-turn' : 'turn-indicator';
+
+    // Update active player highlight
+    document.querySelectorAll('.player-info').forEach(el => el.classList.remove('active'));
+    const activePlayer = document.getElementById(`player-${currentTurn}`);
+    if (activePlayer) activePlayer.classList.add('active');
+}
+
+function showDiceRoll(value) {
+    const diceDiv = document.getElementById('dice');
+    diceDiv.classList.add('rolling');
+
+    setTimeout(() => {
+        diceDiv.classList.remove('rolling');
+        diceDiv.innerHTML = `<div class="dice-face">${value}</div>`;
+    }, 600);
+}
