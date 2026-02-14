@@ -62,19 +62,19 @@ const TOKEN_RADIUS = 14;
 
 // Complete 52-cell Ludo path
 const LUDO_PATH = [
-    [1,6], [2,6], [3,6], [4,6], [5,6], [6,5], [6,4], [6,3], [6,2], [6,1], [6,0],
-    [7,0], [8,0], [8,1], [8,2], [8,3], [8,4], [8,5], [9,6], [10,6], [11,6], [12,6], [13,6], [14,6],
-    [14,7], [14,8], [13,8], [12,8], [11,8], [10,8], [9,8], [8,9], [8,10], [8,11], [8,12], [8,13], [8,14],
-    [7,14], [6,14], [6,13], [6,12], [6,11], [6,10], [6,9], [5,8], [4,8], [3,8], [2,8], [1,8], [0,8],
-    [0,7], [0,6]
+    [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 5], [6, 4], [6, 3], [6, 2], [6, 1], [6, 0],
+    [7, 0], [8, 0], [8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [9, 6], [10, 6], [11, 6], [12, 6], [13, 6], [14, 6],
+    [14, 7], [14, 8], [13, 8], [12, 8], [11, 8], [10, 8], [9, 8], [8, 9], [8, 10], [8, 11], [8, 12], [8, 13], [8, 14],
+    [7, 14], [6, 14], [6, 13], [6, 12], [6, 11], [6, 10], [6, 9], [5, 8], [4, 8], [3, 8], [2, 8], [1, 8], [0, 8],
+    [0, 7], [0, 6]
 ];
 
 // Home stretch paths (last 6 cells before center)
 const HOME_STRETCH = {
-    red: [[1,7], [2,7], [3,7], [4,7], [5,7], [6,7]],
-    blue: [[7,1], [7,2], [7,3], [7,4], [7,5], [7,6]],
-    green: [[13,7], [12,7], [11,7], [10,7], [9,7], [8,7]],
-    yellow: [[7,13], [7,12], [7,11], [7,10], [7,9], [7,8]]
+    red: [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7]],
+    blue: [[7, 1], [7, 2], [7, 3], [7, 4], [7, 5], [7, 6]],
+    green: [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7]],
+    yellow: [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9], [7, 8]]
 };
 
 // Starting positions on main path for each color
@@ -114,7 +114,7 @@ function showToast(message, type = 'info') {
     toast.textContent = message;
     toast.className = `toast ${type}`;
     toast.classList.remove('hidden');
-    
+
     setTimeout(() => {
         toast.classList.add('hidden');
     }, CONFIG.TOAST_DURATION);
@@ -124,12 +124,12 @@ function showToast(message, type = 'info') {
 function connectWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}`;
-    
+
     console.log('Connecting to:', wsUrl);
-    
+
     try {
         ws = new WebSocket(wsUrl);
-        
+
         ws.onopen = () => {
             console.log('✅ Connected to server');
             wsRetries = 0;
@@ -137,7 +137,7 @@ function connectWebSocket() {
             hideLoading();
             showToast('Connected to server', 'success');
         };
-        
+
         ws.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
@@ -146,17 +146,17 @@ function connectWebSocket() {
                 console.error('Error parsing message:', error);
             }
         };
-        
+
         ws.onerror = (error) => {
             console.error('❌ WebSocket error:', error);
             updateConnectionStatus('disconnected');
             showToast('Connection error', 'error');
         };
-        
+
         ws.onclose = () => {
             console.log('🔌 Disconnected from server');
             updateConnectionStatus('disconnected');
-            
+
             if (wsRetries < CONFIG.WS_MAX_RETRIES) {
                 wsRetries++;
                 showToast(`Reconnecting... (${wsRetries}/${CONFIG.WS_MAX_RETRIES})`, 'warning');
@@ -204,7 +204,7 @@ function hideLoading() {
 
 function handleServerMessage(data) {
     console.log('📨 Received:', data);
-    
+
     switch (data.type) {
         case 'room_created':
             currentRoomId = data.roomId;
@@ -212,7 +212,7 @@ function handleServerMessage(data) {
             showWaitingScreen();
             showToast(`Room ${currentRoomId} created!`, 'success');
             break;
-            
+
         case 'player_joined':
             updatePlayersList(data.players);
             showToast(`Player joined!`, 'success');
@@ -221,13 +221,13 @@ function handleServerMessage(data) {
                 document.querySelector('.waiting-hint').textContent = 'Ready to start!';
             }
             break;
-            
+
         case 'game_started':
             gameState = data.gameState;
             showGameScreen(data.players);
             showToast('Game started! 🎮', 'success');
             break;
-            
+
         case 'dice_rolled':
             showDiceRoll(data.diceValue);
             if (data.currentTurn === myColor) {
@@ -237,32 +237,57 @@ function handleServerMessage(data) {
             }
             updateTurn(data.currentTurn);
             break;
-            
+
         case 'token_moved':
             gameState = data.gameState;
             drawBoard();
             break;
-            
+
         case 'turn_changed':
             gameState = data.gameState;
             updateTurn(data.currentTurn);
             rollDiceBtn.disabled = data.currentTurn !== myColor;
             break;
-            
+
         case 'game_over':
             showGameOver(data.winner, data.stats);
             break;
-            
+
         case 'error':
             showToast(data.message, 'error');
             console.error('Server error:', data.message);
             break;
-            
+
         case 'player_disconnected':
             showToast(`Player disconnected`, 'warning');
             break;
-            
+
         default:
             console.warn('Unknown message type:', data.type);
     }
+}
+
+// ===== UI Functions =====
+function showWaitingScreen() {
+    menuScreen.classList.remove('active');
+    gameScreen.classList.remove('active');
+    waitingScreen.classList.add('active');
+
+    displayRoomId.textContent = currentRoomId;
+    updatePlayersList([{ name: playerNameInput.value || 'You', color: myColor, ready: true }]);
+}
+
+function updatePlayersList(players) {
+    playersList.innerHTML = '';
+
+    players.forEach(player => {
+        const item = document.createElement('div');
+        item.className = 'player-item';
+        item.style.borderLeftColor = COLORS[player.color];
+        item.innerHTML = `
+            <div class="player-color-dot" style="background-color: ${COLORS[player.color]}"></div>
+            <span>${player.name} ${player.color === myColor ? '(You)' : ''}</span>
+        `;
+        playersList.appendChild(item);
+    });
 }
