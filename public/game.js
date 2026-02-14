@@ -652,6 +652,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (joinRoomBtn) {
+        joinRoomBtn.addEventListener('click', () => {
+            joinRoomSection.classList.remove('hidden');
+            joinRoomBtn.classList.add('hidden');
+            if (createRoomBtn) createRoomBtn.parentElement.classList.add('hidden');
+            if (roomIdInput) roomIdInput.focus();
+        });
+    }
+
+    if (joinRoomConfirmBtn) {
+        joinRoomConfirmBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            const roomId = roomIdInput.value.trim().toUpperCase();
+
+            if (!name) {
+                showToast('Please enter your name', 'error');
+                return;
+            }
+            if (!roomId) {
+                showToast('Please enter Room ID', 'error');
+                return;
+            }
+
+            sendMessage({
+                type: 'join_room',
+                playerName: name,
+                roomId: roomId
+            });
+            savePlayerName(name);
+        });
+    }
+
     if (backToMenuBtn) {
         backToMenuBtn.addEventListener('click', () => {
             window.location.reload();
