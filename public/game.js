@@ -384,9 +384,9 @@ function drawCells() {
 
     // Draw Bases (replaces corners)
     drawBase(0, 0, COLORS.red);
-    drawBase(9, 0, COLORS.blue); // Wait, 9? 6-8 is path. So 9-14 is base.
-    drawBase(9, 9, COLORS.yellow);
-    drawBase(0, 9, COLORS.green);
+    drawBase(9, 0, COLORS.blue);
+    drawBase(9, 9, COLORS.green);
+    drawBase(0, 9, COLORS.yellow);
 }
 
 function drawBase(x, y, color) {
@@ -396,4 +396,26 @@ function drawBase(x, y, color) {
     // Inner white square
     ctx.fillStyle = '#fff';
     ctx.fillRect((x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE, 4 * CELL_SIZE, 4 * CELL_SIZE);
+
+    // Inner colored square
+    ctx.fillStyle = color;
+    ctx.fillRect((x + 1.5) * CELL_SIZE, (y + 1.5) * CELL_SIZE, 3 * CELL_SIZE, 3 * CELL_SIZE);
+}
+
+function drawHomeStretch() {
+    // Red
+    ctx.fillStyle = COLORS.red;
+    for (let i = 1; i < 6; i++) ctx.fillRect(i * CELL_SIZE, 7 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    // Blue
+    ctx.fillStyle = COLORS.blue;
+    for (let i = 1; i < 6; i++) ctx.fillRect(7 * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    // Green
+    ctx.fillStyle = COLORS.green;
+    for (let i = 9; i < 14; i++) ctx.fillRect(i * CELL_SIZE, 7 * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    // Yellow
+    ctx.fillStyle = COLORS.yellow;
+    for (let i = 9; i < 14; i++) ctx.fillRect(7 * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 }
