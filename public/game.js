@@ -640,4 +640,10 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.reload();
         });
     }
+
+    // Auto-focus name input
+    if (playerNameInput) playerNameInput.focus();
+
+    // Connect to server
+    connectWebSocket();
 });
