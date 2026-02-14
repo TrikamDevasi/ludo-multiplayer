@@ -635,6 +635,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // UI Event Listeners
+    if (createRoomBtn) {
+        createRoomBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim();
+            if (!name) {
+                showToast('Please enter your name', 'error');
+                return;
+            }
+            const count = parseInt(playerCountSelect.value);
+            sendMessage({
+                type: 'create_room',
+                playerName: name,
+                playerCount: count
+            });
+            savePlayerName(name);
+        });
+    }
+
     if (backToMenuBtn) {
         backToMenuBtn.addEventListener('click', () => {
             window.location.reload();
