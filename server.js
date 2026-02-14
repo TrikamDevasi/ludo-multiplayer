@@ -228,10 +228,11 @@ function moveToken(ws, data) {
     else if (token.position >= 0 && !token.isHome) {
         const newPosition = token.position + gameState.diceValue;
 
-        if (newPosition >= 52) {
+        if (newPosition === 57) {
+            token.position = 57;
             token.isHome = true;
             player.score++;
-        } else {
+        } else if (newPosition < 57) {
             token.position = newPosition;
 
             // Check for capture
