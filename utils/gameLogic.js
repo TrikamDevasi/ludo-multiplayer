@@ -53,6 +53,13 @@ function createInitialGameState(playerCount) {
     };
 }
 
+/**
+ * Checks if a player has any valid moves with the current dice value.
+ * @param {Object} gameState - The current game state.
+ * @param {string} color - The color of the player to check.
+ * @param {number} diceValue - The value rolled on the dice.
+ * @returns {boolean} True if at least one move is valid.
+ */
 function checkValidMoves(gameState, color, diceValue) {
     const player = gameState.players[color];
 
