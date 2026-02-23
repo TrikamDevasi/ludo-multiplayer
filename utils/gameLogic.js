@@ -27,6 +27,11 @@ function getGlobalPosition(relativePos, color) {
     return (startIndex + relativePos) % 52;
 }
 
+/**
+ * Initializes a new game state for the specified number of players.
+ * @param {number} playerCount - The number of players (2-4).
+ * @returns {Object} The initial state of the game.
+ */
 function createInitialGameState(playerCount) {
     const players = {};
 
