@@ -350,10 +350,10 @@ function drawBoard() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw Ludo Board Grid
-    drawCells();
-    drawHomeStretch();
-    drawCenter();
-    drawSafeSpots();
+    drawCells();        // Draw the main grid and home bases
+    drawHomeStretch();  // Draw the final path to the center
+    drawCenter();       // Draw the winning triangles
+    drawSafeSpots();    // Draw icons for safe cells
 
     if (gameState) {
         drawTokens();
