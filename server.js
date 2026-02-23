@@ -12,6 +12,7 @@ app.use(express.static('public'));
 
 const PORT = process.env.PORT || 3000;
 
+// Map to store active game rooms with roomId as key
 const rooms = new Map();
 
 // const COLORS = ['red', 'blue', 'green', 'yellow']; // Removed
