@@ -7,27 +7,27 @@
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
     --info-color: #3b82f6;
-    
+
     --text-primary: #1f2937;
     --text-secondary: #6b7280;
     --text-light: #9ca3af;
-    
+
     --bg-white: #ffffff;
     --bg-gray-50: #f9fafb;
     --bg-gray-100: #f3f4f6;
     --bg-gray-200: #e5e7eb;
-    
+
     --border-color: #e5e7eb;
     --border-radius-sm: 8px;
     --border-radius-md: 10px;
     --border-radius-lg: 15px;
     --border-radius-xl: 20px;
-    
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 10px 30px rgba(0, 0, 0, 0.3);
-    
+
     --transition-fast: 0.15s ease;
     --transition-base: 0.3s ease;
     --transition-slow: 0.5s ease;
@@ -51,6 +51,7 @@ body {
     color: var(--text-primary);
 }
 
+/* Main container for the application */
 .container {
     max-width: 1200px;
     width: 100%;
@@ -110,7 +111,9 @@ h1 {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ===== Status Bar ===== */
@@ -144,8 +147,17 @@ h1 {
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.95); }
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
 }
 
 /* ===== Screens ===== */
@@ -159,17 +171,32 @@ h1 {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ===== Cards ===== */
-.menu-card, .waiting-card {
+.menu-card,
+.waiting-card {
     background: var(--bg-white);
     padding: 40px;
     border-radius: var(--border-radius-xl);
@@ -179,11 +206,13 @@ h1 {
     transition: transform var(--transition-base);
 }
 
-.menu-card:hover, .waiting-card:hover {
+.menu-card:hover,
+.waiting-card:hover {
     transform: translateY(-5px);
 }
 
-.menu-card h2, .waiting-card h2 {
+.menu-card h2,
+.waiting-card h2 {
     text-align: center;
     color: var(--primary-color);
     margin-bottom: 15px;
@@ -405,8 +434,15 @@ input[type="text"]:disabled {
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .waiting-hint {
@@ -476,8 +512,15 @@ input[type="text"]:disabled {
 }
 
 @keyframes glow {
-    0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.3); }
-    50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+    }
 }
 
 /* ===== Game Container ===== */
@@ -551,7 +594,7 @@ input[type="text"]:disabled {
     right: 5px;
     bottom: 5px;
     border-radius: 15px;
-    background: linear-gradient(145deg, rgba(255,255,255,0.3), transparent);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), transparent);
     pointer-events: none;
 }
 
@@ -560,11 +603,25 @@ input[type="text"]:disabled {
 }
 
 @keyframes diceRoll {
-    0% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(90deg) scale(1.1); }
-    50% { transform: rotate(180deg) scale(1); }
-    75% { transform: rotate(270deg) scale(1.1); }
-    100% { transform: rotate(360deg) scale(1); }
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    25% {
+        transform: rotate(90deg) scale(1.1);
+    }
+
+    50% {
+        transform: rotate(180deg) scale(1);
+    }
+
+    75% {
+        transform: rotate(270deg) scale(1.1);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
 }
 
 .dice-result {
@@ -624,9 +681,19 @@ input[type="text"]:disabled {
 }
 
 @keyframes modalPop {
-    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
-    60% { transform: scale(1.1) rotate(10deg); }
-    100% { transform: scale(1) rotate(0); opacity: 1; }
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.1) rotate(10deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
 }
 
 .winner-icon {
@@ -636,8 +703,15 @@ input[type="text"]:disabled {
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
 }
 
 .game-stats {
@@ -676,8 +750,15 @@ input[type="text"]:disabled {
 }
 
 @keyframes slideInRight {
-    from { transform: translateX(400px); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 /* ===== Responsive Design ===== */
@@ -686,7 +767,7 @@ input[type="text"]:disabled {
         flex-direction: column;
         align-items: center;
     }
-    
+
     #ludoCanvas {
         width: 500px;
         height: 500px;
@@ -698,20 +779,21 @@ input[type="text"]:disabled {
         font-size: 1.8rem;
         margin-bottom: 15px;
     }
-    
-    .menu-card, .waiting-card {
+
+    .menu-card,
+    .waiting-card {
         padding: 30px 20px;
     }
-    
+
     .button-group {
         flex-direction: column;
     }
-    
+
     #ludoCanvas {
         width: 400px;
         height: 400px;
     }
-    
+
     .dice-area {
         width: 100%;
         padding: 20px;
@@ -722,37 +804,38 @@ input[type="text"]:disabled {
     body {
         padding: 10px;
     }
-    
+
     .status-bar {
         padding: 10px 15px;
         font-size: 0.9rem;
     }
-    
-    .menu-card, .waiting-card {
+
+    .menu-card,
+    .waiting-card {
         padding: 25px 15px;
     }
-    
+
     #ludoCanvas {
         width: 100%;
         max-width: 350px;
         height: auto;
         aspect-ratio: 1;
     }
-    
+
     .dice {
         width: 80px;
         height: 80px;
         font-size: 2.5rem;
     }
-    
+
     .modal-content {
         padding: 30px 20px;
     }
-    
+
     .winner-icon {
         font-size: 4rem;
     }
-    
+
     .toast {
         bottom: 20px;
         right: 20px;
@@ -763,7 +846,10 @@ input[type="text"]:disabled {
 
 /* ===== Print Styles ===== */
 @media print {
-    .btn, .dice-area, .status-bar {
+
+    .btn,
+    .dice-area,
+    .status-bar {
         display: none;
     }
 }
