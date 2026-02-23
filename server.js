@@ -21,9 +21,11 @@ const rooms = new Map();
 
 // function createInitialGameState(playerCount) { ... } // Removed
 
+// Initialize WebSocket connection handler
 wss.on('connection', (ws) => {
     console.log('New client connected');
 
+    // Listen for incoming messages from the client
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
