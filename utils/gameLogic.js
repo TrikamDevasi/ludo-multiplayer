@@ -15,6 +15,12 @@ const START_INDEX = {
     yellow: 39
 };
 
+/**
+ * Converts a relative token position to a global board position.
+ * @param {number} relativePos - The position relative to the starting point (0-51).
+ * @param {string} color - The color of the player.
+ * @returns {number} The global position on the 52-cell track, or -1 if invalid/safe zone.
+ */
 function getGlobalPosition(relativePos, color) {
     if (relativePos < 0 || relativePos >= 52) return -1; // Base or Safe/Home Stretch
     const startIndex = START_INDEX[color];
