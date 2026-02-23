@@ -52,4 +52,6 @@ Visit: http://localhost:3000
 
 ## Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment instructions.
+## License
+
+This project is open-source and available under the [MIT License](LICENSE).
