@@ -1,5 +1,9 @@
 const COLORS = ['red', 'blue', 'green', 'yellow'];
 
+/**
+ * Generates a random alphanumeric room ID of fixed length.
+ * @returns {string} A 6-character room ID.
+ */
 function generateRoomId() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
@@ -43,10 +47,57 @@ function createInitialGameState(playerCount) {
     };
 }
 
+function checkValidMoves(gameState, color, diceValue) {
+    const player = gameState.players[color];
+
+    for (let token of player.tokens) {
+        if (token.position === -1) {
+            if (diceValue === 6) return true;
+        } else if (!token.isHome) {
+            if (token.position + diceValue <= 57) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+function checkCapture(gameState, currentColor, relativePos) {
+    const myGlobalPos = getGlobalPosition(relativePos, currentColor);
+
+    // If in safe spot (global) or safe zone (base/home stretch), no capture
+    if (myGlobalPos === -1) return;
+
+    const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
+    if (SAFE_SPOTS.includes(myGlobalPos)) return;
+
+    for (let color in gameState.players) {
+        if (color === currentColor) continue;
+
+        const player = gameState.players[color];
+        for (let token of player.tokens) {
+            if (token.position !== -1 && !token.isHome) {
+                const theirGlobalPos = getGlobalPosition(token.position, color);
+
+                if (theirGlobalPos === myGlobalPos) {
+                    // Capture!
+                    token.position = -1;
+                    token.isSafe = true;
+                    // Provide extra turn reward? (Standard Ludo rule)
+                    // For now, minimal changes.
+                }
+            }
+        }
+    }
+}
+
 module.exports = {
     generateRoomId,
     createInitialGameState,
     COLORS,
     START_INDEX,
-    getGlobalPosition
+    getGlobalPosition,
+    checkValidMoves,
+    checkCapture
 };
