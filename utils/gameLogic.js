@@ -76,6 +76,12 @@ function checkValidMoves(gameState, color, diceValue) {
     return false;
 }
 
+/**
+ * Checks for token captures at a given relative position.
+ * @param {Object} gameState - The current game state.
+ * @param {string} currentColor - The color of the player who just moved.
+ * @param {number} relativePos - The new relative position of the moved token.
+ */
 function checkCapture(gameState, currentColor, relativePos) {
     const myGlobalPos = getGlobalPosition(relativePos, currentColor);
 
