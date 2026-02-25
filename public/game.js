@@ -89,6 +89,10 @@ const START_INDEX = {
 const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
 
 // ===== Local Storage Management =====
+/**
+ * Saves the player name to local storage.
+ * @param {string} name - The name to save.
+ */
 function savePlayerName(name) {
     try {
         localStorage.setItem('ludoPlayerName', name);
@@ -97,6 +101,9 @@ function savePlayerName(name) {
     }
 }
 
+/**
+ * Loads the player name from local storage and updates the input field.
+ */
 function loadPlayerName() {
     try {
         const name = localStorage.getItem('ludoPlayerName');
@@ -109,6 +116,11 @@ function loadPlayerName() {
 }
 
 // ===== Toast Notifications =====
+/**
+ * Displays a toast notification.
+ * @param {string} message - The message to display.
+ * @param {string} type - The type of toast (info, success, error, warning).
+ */
 function showToast(message, type = 'info') {
     const toast = document.getElementById('toast');
     toast.textContent = message;
@@ -121,6 +133,9 @@ function showToast(message, type = 'info') {
 }
 
 // ===== WebSocket Functions =====
+/**
+ * Initializes and connects the WebSocket client.
+ */
 function connectWebSocket() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}`;
@@ -172,6 +187,11 @@ function connectWebSocket() {
     }
 }
 
+/**
+ * Sends a message through the WebSocket.
+ * @param {Object} data - The message object to send.
+ * @returns {boolean} True if the message was sent successfully.
+ */
 function sendMessage(data) {
     if (ws && ws.readyState === WebSocket.OPEN) {
         try {
