@@ -97,6 +97,7 @@ function createRoom(ws, data) {
 
     rooms.set(roomId, room);
     ws.roomId = roomId;
+    ws.playerName = data.playerName;
     ws.playerColor = COLORS[0];
 
     ws.send(JSON.stringify({
@@ -133,11 +134,18 @@ function joinRoom(ws, data) {
     });
 
     ws.roomId = data.roomId;
+    ws.playerName = data.playerName;
     ws.playerColor = color;
 
     broadcastToRoom(room, {
         type: 'player_joined',
         players: room.players.map(p => ({ name: p.name, color: p.color, ready: p.ready }))
+    });
+
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: `${data.playerName} has joined the game!`
     });
 }
 
@@ -156,6 +164,12 @@ function startGame(ws) {
         type: 'game_started',
         gameState: room.gameState,
         players: room.players.map(p => ({ name: p.name, color: p.color }))
+    });
+
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: 'Game has started! Good luck!'
     });
 }
 
@@ -306,9 +320,16 @@ function handleDisconnect(ws) {
             if (room.players.length === 0) {
                 rooms.delete(ws.roomId);
             } else {
+                const playerName = ws.playerName || 'A player';
                 broadcastToRoom(room, {
                     type: 'player_left',
                     players: room.players.map(p => ({ name: p.name, color: p.color }))
+                });
+
+                broadcastToRoom(room, {
+                    type: 'chat_message',
+                    type_meta: 'system',
+                    message: `${playerName} has left the game.`
                 });
             }
         }
