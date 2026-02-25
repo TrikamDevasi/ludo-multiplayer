@@ -1,4 +1,7 @@
 const COLORS = ['red', 'blue', 'green', 'yellow'];
+const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
+const BOARD_PATH_LENGTH = 52;
+const HOME_STRETCH_LENGTH = 57;
 
 /**
  * Generates a random alphanumeric room ID of fixed length.
@@ -22,9 +25,9 @@ const START_INDEX = {
  * @returns {number} The global position on the 52-cell track, or -1 if invalid/safe zone.
  */
 function getGlobalPosition(relativePos, color) {
-    if (relativePos < 0 || relativePos >= 52) return -1; // Base or Safe/Home Stretch
+    if (relativePos < 0 || relativePos >= BOARD_PATH_LENGTH) return -1; // Base or Safe/Home Stretch
     const startIndex = START_INDEX[color];
-    return (startIndex + relativePos) % 52;
+    return (startIndex + relativePos) % BOARD_PATH_LENGTH;
 }
 
 /**
@@ -72,7 +75,7 @@ function checkValidMoves(gameState, color, diceValue) {
         if (token.position === -1) {
             if (diceValue === 6) return true;
         } else if (!token.isHome) {
-            if (token.position + diceValue <= 57) {
+            if (token.position + diceValue <= HOME_STRETCH_LENGTH) {
                 return true;
             }
         }
@@ -93,7 +96,6 @@ function checkCapture(gameState, currentColor, relativePos) {
     // If in safe spot (global) or safe zone (base/home stretch), no capture
     if (myGlobalPos === -1) return;
 
-    const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
     if (SAFE_SPOTS.includes(myGlobalPos)) return;
 
     for (let color in gameState.players) {
@@ -120,7 +122,10 @@ module.exports = {
     generateRoomId,
     createInitialGameState,
     COLORS,
+    SAFE_SPOTS,
     START_INDEX,
+    BOARD_PATH_LENGTH,
+    HOME_STRETCH_LENGTH,
     getGlobalPosition,
     checkValidMoves,
     checkCapture
