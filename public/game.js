@@ -222,6 +222,10 @@ function hideLoading() {
     loadingOverlay.classList.add('hidden');
 }
 
+/**
+ * Handles messages received from the server.
+ * @param {Object} data - The message data object.
+ */
 function handleServerMessage(data) {
     console.log('📨 Received:', data);
 
@@ -288,6 +292,9 @@ function handleServerMessage(data) {
 }
 
 // ===== UI Functions =====
+/**
+ * Switches the UI to the waiting screen.
+ */
 function showWaitingScreen() {
     menuScreen.classList.remove('active');
     gameScreen.classList.remove('active');
@@ -297,6 +304,10 @@ function showWaitingScreen() {
     updatePlayersList([{ name: playerNameInput.value || 'You', color: myColor, ready: true }]);
 }
 
+/**
+ * Updates the players list in the waiting screen.
+ * @param {Array} players - Array of player objects.
+ */
 function updatePlayersList(players) {
     playersList.innerHTML = '';
 
@@ -312,6 +323,10 @@ function updatePlayersList(players) {
     });
 }
 
+/**
+ * Switches the UI to the game screen and initializes the board.
+ * @param {Array} players - Array of player objects.
+ */
 function showGameScreen(players) {
     waitingScreen.classList.remove('active');
     gameScreen.classList.add('active');
@@ -337,6 +352,10 @@ function showGameScreen(players) {
     drawBoard();
 }
 
+/**
+ * Updates the UI to show the current player's turn.
+ * @param {string} currentTurn - The color of the player whose turn it is.
+ */
 function updateTurn(currentTurn) {
     turnText.textContent = currentTurn === myColor ? "Your Turn!" : `${currentTurn.toUpperCase()}'s Turn`;
     turnText.className = currentTurn === myColor ? 'turn-indicator my-turn' : 'turn-indicator';
@@ -347,6 +366,10 @@ function updateTurn(currentTurn) {
     if (activePlayer) activePlayer.classList.add('active');
 }
 
+/**
+ * Displays the dice roll animation and result.
+ * @param {number} value - The value rolled.
+ */
 function showDiceRoll(value) {
     const diceDiv = document.getElementById('dice');
     diceDiv.classList.add('rolling');
