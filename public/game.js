@@ -402,7 +402,7 @@ function appendChatMessage(data) {
     const isSelf = data.sender === myColor;
 
     // Check if it's a system message
-    if (data.type === 'system' || !data.sender) {
+    if (data.type_meta === 'system' || data.type === 'system' || !data.sender) {
         messageDiv.className = 'chat-message system';
         messageDiv.textContent = data.message;
     } else {
