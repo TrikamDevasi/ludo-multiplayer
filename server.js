@@ -10,6 +10,12 @@ const wss = new WebSocket.Server({ server });
 
 app.use(express.static('public'));
 
+// Basic logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Map to store active game rooms with roomId as key
@@ -309,3 +315,6 @@ function handleDisconnect(ws) {
 server.listen(PORT, () => {
     console.log(`Ludo server running on port ${PORT}`);
 });
+
+// Export elements for potential testing
+module.exports = { app, server, rooms };
