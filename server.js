@@ -332,7 +332,7 @@ function handleChatMessage(ws, data) {
     });
 }
 
-function server.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Ludo server running on port ${PORT}`);
 });
 
