@@ -1,11 +1,19 @@
-# 🎲 Ludo Multiplayer - Classic Board Game
+# 🎲# Ludo Multiplayer Game
+A real-time, web-based multiplayer Ludo game built with JavaScript, Node.js, and WebSockets.
 
 ## Features
+- **Real-time Multiplayer**: Play with 2-4 players in private rooms.
+- **Dynamic Board Rendering**: Interactive HTML5 Canvas-based game board.
+- **WebSocket Communication**: Smooth, low-latency gameplay.
+- **Responsive Design**: Play on your desktop or mobile browser.
+- **Turn-based Logic**: Full implementation of standard Ludo rules, including captures and home stretches.
 
-### 🎮 Game Modes
-- **2-4 Players**: Play with friends online
-- **Classic Ludo Rules**: Traditional gameplay
-- **Real-time Multiplayer**: WebSocket-based
+## Tech Stack
+- **Frontend**: Vanilla JavaScript (ES6+), HTML5 Canvas, CSS3
+- **Backend**: Node.js, Express
+- **Communication**: WebSockets (`ws` library)
+
+## Getting Started
 
 ### 🎯 Game Features
 - ✅ Dice rolling with animation
