@@ -1,4 +1,4 @@
-const COLORS = ['red', 'blue', 'green', 'yellow'];
+const PLAYER_COLORS = ['red', 'blue', 'green', 'yellow'];
 const SAFE_SPOTS = [0, 8, 13, 21, 26, 34, 39, 47];
 const BOARD_PATH_LENGTH = 52;
 const HOME_STRETCH_LENGTH = 57;
@@ -39,7 +39,7 @@ function createInitialGameState(playerCount) {
     const players = {};
 
     for (let i = 0; i < playerCount; i++) {
-        const color = COLORS[i];
+        const color = PLAYER_COLORS[i];
         players[color] = {
             tokens: [
                 { id: 0, position: -1, isHome: false, isSafe: true },
@@ -53,7 +53,7 @@ function createInitialGameState(playerCount) {
 
     return {
         players,
-        currentTurn: COLORS[0],
+        currentTurn: PLAYER_COLORS[0],
         diceValue: null,
         gameStarted: false,
         gameOver: false,
@@ -121,7 +121,7 @@ function checkCapture(gameState, currentColor, relativePos) {
 module.exports = {
     generateRoomId,
     createInitialGameState,
-    COLORS,
+    PLAYER_COLORS,
     SAFE_SPOTS,
     START_INDEX,
     BOARD_PATH_LENGTH,
