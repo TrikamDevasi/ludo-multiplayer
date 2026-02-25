@@ -387,6 +387,9 @@ function showGameOver(winner, stats) {
 }
 
 // ===== Canvas Functions =====
+/**
+ * Clears and redraws the entire game board.
+ */
 function drawBoard() {
     if (!ctx) return;
 
@@ -403,6 +406,9 @@ function drawBoard() {
     }
 }
 
+/**
+ * Draws the main 15x15 board grid and home bases.
+ */
 function drawCells() {
     // Draw 15x15 Grid with colored zones
     for (let x = 0; x < BOARD_SIZE; x++) {
@@ -432,6 +438,12 @@ function drawCells() {
     drawBase(0, 9, COLORS.yellow);
 }
 
+/**
+ * Draws a player's home base.
+ * @param {number} x - Grid X coordinate.
+ * @param {number} y - Grid Y coordinate.
+ * @param {string} color - The color of the base.
+ */
 function drawBase(x, y, color) {
     ctx.fillStyle = color;
     ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, 6 * CELL_SIZE, 6 * CELL_SIZE);
@@ -445,6 +457,9 @@ function drawBase(x, y, color) {
     ctx.fillRect((x + 1.5) * CELL_SIZE, (y + 1.5) * CELL_SIZE, 3 * CELL_SIZE, 3 * CELL_SIZE);
 }
 
+/**
+ * Draws the colored home stretch paths.
+ */
 function drawHomeStretch() {
     // Red
     ctx.fillStyle = COLORS.red;
@@ -463,6 +478,9 @@ function drawHomeStretch() {
     for (let i = 9; i < 14; i++) ctx.fillRect(7 * CELL_SIZE, i * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 }
 
+/**
+ * Draws the winning triangles in the center of the board.
+ */
 function drawCenter() {
     // Draw center triangles
     const cx = 7.5 * CELL_SIZE;
@@ -506,6 +524,9 @@ function drawCenter() {
     ctx.fill();
 }
 
+/**
+ * Draws safe spots (star icons) on the board.
+ */
 function drawSafeSpots() {
     ctx.fillStyle = 'rgba(0,0,0,0.1)';
 
@@ -541,6 +562,12 @@ function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
     // actually safe spots are usually just visual.
 }
 
+/**
+ * Calculates canvas coordinates for a given position and color.
+ * @param {number} position - The relative position.
+ * @param {string} color - The player color.
+ * @returns {Object|null} Coordinates object {x, y} or null.
+ */
 function getCoordinates(position, color) {
     // Base position (position -1)
     if (position === -1) return null; // handled separately in drawTokens
@@ -564,6 +591,9 @@ function getCoordinates(position, color) {
     return { x: x + 0.5, y: y + 0.5 };
 }
 
+/**
+ * Draws all player tokens in their current positions.
+ */
 function drawTokens() {
     Object.keys(gameState.players).forEach(color => {
         const player = gameState.players[color];
@@ -599,6 +629,13 @@ function drawTokens() {
     });
 }
 
+/**
+ * Draws a single token on the canvas.
+ * @param {number} x - Pixel X coordinate.
+ * @param {number} y - Pixel Y coordinate.
+ * @param {string} color - The color of the token.
+ * @param {boolean} isSafe - Whether the token is on a safe spot.
+ */
 function drawToken(x, y, color, isSafe) {
     ctx.beginPath();
     ctx.arc(x, y, TOKEN_RADIUS, 0, Math.PI * 2);
@@ -615,6 +652,10 @@ function drawToken(x, y, color, isSafe) {
     ctx.stroke();
 }
 
+/**
+ * Handles clicks on the game canvas to move tokens.
+ * @param {MouseEvent} event - The click event.
+ */
 function handleCanvasClick(event) {
     if (!gameState || gameState.currentTurn !== myColor || !gameState.diceValue) return;
 
