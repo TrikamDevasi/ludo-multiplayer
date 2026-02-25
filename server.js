@@ -101,10 +101,15 @@ function createRoom(ws, data) {
     ws.playerColor = COLORS[0];
 
     ws.send(JSON.stringify({
-        type: 'room_created',
         roomId: roomId,
         color: COLORS[0]
     }));
+
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: `Welcome! Room ID: ${roomId}`
+    });
 }
 
 /**
@@ -261,6 +266,12 @@ function moveToken(ws, data) {
         broadcastToRoom(room, {
             type: 'game_over',
             winner: ws.playerColor
+        });
+
+        broadcastToRoom(room, {
+            type: 'chat_message',
+            type_meta: 'system',
+            message: `🏆 GAME OVER! ${room.players.find(p => p.ws === ws)?.name || ws.playerColor} wins!`
         });
         return;
     }
