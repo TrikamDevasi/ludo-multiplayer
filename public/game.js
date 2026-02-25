@@ -277,6 +277,10 @@ function handleServerMessage(data) {
             showGameOver(data.winner, data.stats);
             break;
 
+        case 'chat_message':
+            appendChatMessage(data);
+            break;
+
         case 'error':
             showToast(data.message, 'error');
             console.error('Server error:', data.message);
@@ -384,6 +388,33 @@ function showGameOver(winner, stats) {
     gameOverModal.classList.remove('hidden');
     winnerText.textContent = `${winner.toUpperCase()} WINS!`;
     winnerText.style.color = COLORS[winner];
+}
+
+/**
+ * Appends a chat message to the UI.
+ * @param {Object} data - The message data object.
+ */
+function appendChatMessage(data) {
+    const chatMessages = document.getElementById('chatMessages');
+    if (!chatMessages) return;
+
+    const messageDiv = document.createElement('div');
+    const isSelf = data.sender === myColor;
+
+    // Check if it's a system message
+    if (data.type === 'system' || !data.sender) {
+        messageDiv.className = 'chat-message system';
+        messageDiv.textContent = data.message;
+    } else {
+        messageDiv.className = `chat-message ${isSelf ? 'self' : ''}`;
+        messageDiv.innerHTML = `
+            <span class="player-name" style="color: ${isSelf ? 'white' : COLORS[data.sender]}">${data.senderName}</span>
+            <span class="message-text">${data.message}</span>
+        `;
+    }
+
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // ===== Canvas Functions =====
@@ -814,6 +845,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-focus name input
     if (playerNameInput) playerNameInput.focus();
+
+    // Chat controls
+    const chatInput = document.getElementById('chatInput');
+    const sendChatBtn = document.getElementById('sendChatBtn');
+
+    if (sendChatBtn && chatInput) {
+        const sendMsg = () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                sendMessage({
+                    type: 'chat_message',
+                    message: message
+                });
+                chatInput.value = '';
+            }
+        };
+
+        sendChatBtn.addEventListener('click', sendMsg);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMsg();
+        });
+    }
 
     // Connect to server
     connectWebSocket();
