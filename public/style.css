@@ -8,6 +8,9 @@
     --danger-color: #ef4444;
     --info-color: #3b82f6;
 
+    --chat-bg: #f9fafb;
+    --chat-self-bg: #667eea;
+
     --text-primary: #1f2937;
     --text-secondary: #6b7280;
     --text-light: #9ca3af;
@@ -643,7 +646,7 @@ input[type="text"]:disabled {
 .chat-system {
     width: 100%;
     margin-top: 20px;
-    background: var(--bg-gray-50);
+    background: var(--chat-bg);
     border-radius: var(--border-radius-md);
     overflow: hidden;
     display: flex;
@@ -672,7 +675,7 @@ input[type="text"]:disabled {
 
 .chat-message.self {
     align-self: flex-end;
-    background: var(--primary-color);
+    background: var(--chat-self-bg);
     color: white;
 }
 
