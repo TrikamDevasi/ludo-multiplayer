@@ -3,6 +3,7 @@ A real-time, web-based multiplayer Ludo game built with JavaScript, Node.js, and
 
 ## Features
 - **Real-time Multiplayer**: Play with 2-4 players in private rooms.
+- **In-game Chat**: Communicate with other players in real-time.
 - **Dynamic Board Rendering**: Interactive HTML5 Canvas-based game board.
 - **WebSocket Communication**: Smooth, low-latency gameplay.
 - **Responsive Design**: Play on your desktop or mobile browser.
