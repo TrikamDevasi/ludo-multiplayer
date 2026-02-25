@@ -41,6 +41,11 @@ wss.on('connection', (ws) => {
     });
 });
 
+/**
+ * Handles incoming WebSocket messages.
+ * @param {WebSocket} ws - The current WebSocket client.
+ * @param {Object} data - The message data received.
+ */
 function handleMessage(ws, data) {
     switch (data.type) {
         case 'create_room':
@@ -61,6 +66,11 @@ function handleMessage(ws, data) {
     }
 }
 
+/**
+ * Creates a new game room and assigns the host.
+ * @param {WebSocket} ws - The current WebSocket client.
+ * @param {Object} data - The request data (playerName, playerCount).
+ */
 function createRoom(ws, data) {
     const roomId = generateRoomId();
     const room = {
@@ -87,6 +97,11 @@ function createRoom(ws, data) {
     }));
 }
 
+/**
+ * Joins an existing game room.
+ * @param {WebSocket} ws - The current WebSocket client.
+ * @param {Object} data - The request data (roomId, playerName).
+ */
 function joinRoom(ws, data) {
     const room = rooms.get(data.roomId);
 
@@ -117,6 +132,10 @@ function joinRoom(ws, data) {
     });
 }
 
+/**
+ * Starts the game for the specified room.
+ * @param {WebSocket} ws - The host's WebSocket client.
+ */
 function startGame(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || room.host !== ws) return;
@@ -131,6 +150,10 @@ function startGame(ws) {
     });
 }
 
+/**
+ * Rolls the dice for the current player's turn.
+ * @param {WebSocket} ws - The current player's WebSocket client.
+ */
 function rollDice(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || !room.gameState) return;
@@ -164,6 +187,11 @@ function rollDice(ws) {
 
 // checkValidMoves moved to utils/gameLogic.js
 
+/**
+ * Moves a token based on the current dice value.
+ * @param {WebSocket} ws - The switching player's WebSocket client.
+ * @param {Object} data - The move data (tokenId).
+ */
 function moveToken(ws, data) {
     const room = rooms.get(ws.roomId);
     if (!room || !room.gameState) return;
@@ -225,6 +253,10 @@ function moveToken(ws, data) {
 
 // checkCapture moved to utils/gameLogic.js
 
+/**
+ * Switches the turn to the next player.
+ * @param {Object} room - The current game room objects.
+ */
 function nextTurn(room) {
     const gameState = room.gameState;
     const colors = Object.keys(gameState.players);
@@ -241,12 +273,21 @@ function nextTurn(room) {
     });
 }
 
+/**
+ * Broadcasts a message to all players in a room.
+ * @param {Object} room - The game room to broadcast to.
+ * @param {Object} message - The message object to send.
+ */
 function broadcastToRoom(room, message) {
     room.players.forEach(player => {
         player.ws.send(JSON.stringify(message));
     });
 }
 
+/**
+ * Handles player disconnection.
+ * @param {WebSocket} ws - The disconnected player's WebSocket.
+ */
 function handleDisconnect(ws) {
     if (ws.roomId) {
         const room = rooms.get(ws.roomId);
