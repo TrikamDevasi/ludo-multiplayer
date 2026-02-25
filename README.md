@@ -61,6 +61,13 @@ Visit: http://localhost:3000
 
 ## Deployment
 
+## Future Improvements
+- **AI Players**: Play against local computer players.
+- **Spectator Mode**: Watch games in progress via room IDs.
+- **Custom Themes**: Change board colors and styles.
+- **Sound Effects**: Atmospheric sounds for dice rolls and moves.
+- **Player Stats**: Track wins and scores across sessions.
+
 ## License
 
 This project is open-source and available under the [MIT License](LICENSE).
