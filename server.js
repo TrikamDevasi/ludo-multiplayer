@@ -69,6 +69,9 @@ function handleMessage(ws, data) {
         case 'move_token':
             moveToken(ws, data);
             break;
+        case 'chat_message':
+            handleChatMessage(ws, data);
+            break;
     }
 }
 
@@ -312,7 +315,24 @@ function handleDisconnect(ws) {
     }
 }
 
-server.listen(PORT, () => {
+/**
+ * Handles incoming chat messages and broadcasts them to the room.
+ * @param {WebSocket} ws - The current WebSocket client.
+ * @param {Object} data - The chat message data.
+ */
+function handleChatMessage(ws, data) {
+    const room = rooms.get(ws.roomId);
+    if (!room) return;
+
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        sender: ws.playerColor,
+        senderName: room.players.find(p => p.ws === ws)?.name || 'Unknown',
+        message: data.message
+    });
+}
+
+function server.listen(PORT, () => {
     console.log(`Ludo server running on port ${PORT}`);
 });
 
