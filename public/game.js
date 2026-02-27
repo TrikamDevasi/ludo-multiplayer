@@ -330,6 +330,26 @@ function updatePlayersList(players) {
         `;
         playersList.appendChild(item);
     });
+
+    // Disable addBotBtn if room is full
+    const addBotBtn = document.getElementById('addBotBtn');
+    const startGameBtn = document.getElementById('startGameBtn');
+
+    // Check room capacity (we need room.maxPlayers, but let's assume it's from the first message or fixed)
+    // Actually, we can check if players.length >= some limit. 
+    // In Ludo it's 4.
+    if (addBotBtn) {
+        if (players.length >= 4) {
+            addBotBtn.disabled = true;
+            addBotBtn.title = 'Room is full';
+        } else {
+            addBotBtn.disabled = false;
+        }
+    }
+
+    if (startGameBtn) {
+        startGameBtn.disabled = players.length < 2;
+    }
 }
 
 /**
