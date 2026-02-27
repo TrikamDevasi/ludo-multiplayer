@@ -805,6 +805,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const addBotBtn = document.getElementById('addBotBtn');
+    if (addBotBtn) {
+        addBotBtn.addEventListener('click', () => {
+            sendMessage({ type: 'add_bot' });
+        });
+    }
+
     if (rollDiceBtn) {
         rollDiceBtn.addEventListener('click', () => {
             sendMessage({ type: 'roll_dice' });
