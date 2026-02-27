@@ -378,7 +378,13 @@ function showDiceRoll(value) {
     const diceDiv = document.getElementById('dice');
     diceDiv.classList.add('rolling');
 
+    // Fast-changing random numbers for effect
+    const rollingInterval = setInterval(() => {
+        diceDiv.innerHTML = `<div class="dice-face">${Math.floor(Math.random() * 6) + 1}</div>`;
+    }, 50);
+
     setTimeout(() => {
+        clearInterval(rollingInterval);
         diceDiv.classList.remove('rolling');
         diceDiv.innerHTML = `<div class="dice-face">${value}</div>`;
     }, 600);
