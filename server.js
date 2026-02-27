@@ -242,11 +242,29 @@ function rollDice(ws) {
     const diceValue = Math.floor(Math.random() * 6) + 1;
     gameState.diceValue = diceValue;
 
+    if (diceValue === 6) {
+        gameState.consecutiveSixes++;
+    } else {
+        gameState.consecutiveSixes = 0;
+    }
+
     broadcastToRoom(room, {
         type: 'dice_rolled',
         diceValue: diceValue,
         currentTurn: gameState.currentTurn
     });
+
+    if (gameState.consecutiveSixes === 3) {
+        broadcastToRoom(room, {
+            type: 'chat_message',
+            type_meta: 'system',
+            message: `${ws.playerName} rolled three 6s! Turn lost.`
+        });
+        setTimeout(() => {
+            nextTurn(room);
+        }, 1500);
+        return;
+    }
 
     // Check if player has valid moves
     setTimeout(() => {
@@ -345,6 +363,7 @@ function nextTurn(room) {
 
     gameState.currentTurn = colors[nextIndex];
     gameState.diceValue = null;
+    gameState.consecutiveSixes = 0;
 
     broadcastToRoom(room, {
         type: 'turn_changed',

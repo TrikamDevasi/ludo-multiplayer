@@ -57,7 +57,8 @@ function createInitialGameState(playerCount) {
         diceValue: null,
         gameStarted: false,
         gameOver: false,
-        winner: null
+        winner: null,
+        consecutiveSixes: 0
     };
 }
 
