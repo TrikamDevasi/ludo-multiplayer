@@ -223,6 +223,12 @@ function startGame(ws) {
         message: 'Game has started! Good luck!'
     });
 
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: 'A new game begins! Capture opponents for extra turns!'
+    });
+
     checkBotTurn(room);
 }
 
