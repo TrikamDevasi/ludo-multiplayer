@@ -394,6 +394,12 @@ function nextTurn(room) {
         gameState: gameState
     });
 
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: `It is now ${gameState.currentTurn.toUpperCase()}'s turn.`
+    });
+
     checkBotTurn(room);
 }
 
