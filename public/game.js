@@ -15,6 +15,8 @@ let myColor = null;
 let gameState = null;
 let canvas, ctx;
 let animationQueue = [];
+let isAnimating = false;
+let previousGameState = null;
 
 // ===== DOM Elements =====
 const menuScreen = document.getElementById('menuScreen');
@@ -263,8 +265,11 @@ function handleServerMessage(data) {
             break;
 
         case 'token_moved':
+            if (gameState) previousGameState = JSON.parse(JSON.stringify(gameState));
+            const oldState = gameState;
             gameState = data.gameState;
-            drawBoard();
+
+            animateTokenMove(data.color, data.tokenId, oldState, gameState);
             break;
 
         case 'turn_changed':
@@ -711,6 +716,59 @@ function drawToken(x, y, color, isSafe) {
     ctx.arc(x, y, TOKEN_RADIUS * 0.7, 0, Math.PI * 2);
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.stroke();
+}
+
+/**
+ * Animates a token moving from its old position to new position.
+ */
+async function animateTokenMove(color, tokenId, oldState, newState) {
+    if (!oldState) {
+        drawBoard();
+        return;
+    }
+
+    const oldToken = oldState.players[color].tokens[tokenId];
+    const newToken = newState.players[color].tokens[tokenId];
+
+    if (oldToken.position === newToken.position) {
+        drawBoard();
+        return;
+    }
+
+    isAnimating = true;
+
+    // If coming out of base
+    if (oldToken.position === -1 && newToken.position === 0) {
+        // Just jump to 0 for now or animate a quick slide
+        drawBoard();
+        isAnimating = false;
+        return;
+    }
+
+    // Step by step animation
+    const path = [];
+    for (let p = oldToken.position + 1; p <= newToken.position; p++) {
+        path.push(p);
+    }
+
+    // This handles forward movement. Capture (jumping back to -1) is handled by immediate redraw in the end.
+
+    for (let pos of path) {
+        // Create a temporary state for drawing
+        const tempState = JSON.parse(JSON.stringify(newState));
+        tempState.players[color].tokens[tokenId].position = pos;
+
+        // Update global gameState temporarily for drawBoard
+        const realState = gameState;
+        gameState = tempState;
+        drawBoard();
+        gameState = realState;
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    drawBoard();
+    isAnimating = false;
 }
 
 /**
