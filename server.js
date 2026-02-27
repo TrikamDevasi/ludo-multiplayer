@@ -72,6 +72,9 @@ function handleMessage(ws, data) {
         case 'chat_message':
             handleChatMessage(ws, data);
             break;
+        case 'add_bot':
+            addBot(ws);
+            break;
     }
 }
 
@@ -151,6 +154,49 @@ function joinRoom(ws, data) {
         type: 'chat_message',
         type_meta: 'system',
         message: `${data.playerName} has joined the game!`
+    });
+}
+
+/**
+ * Adds a bot player to the room.
+ * @param {WebSocket} ws - The host's WebSocket client.
+ */
+function addBot(ws) {
+    const room = rooms.get(ws.roomId);
+    if (!room || room.host !== ws) return;
+
+    if (room.players.length >= room.maxPlayers) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Room is full' }));
+        return;
+    }
+
+    const botId = room.players.filter(p => p.isBot).length + 1;
+    const color = COLORS[room.players.length];
+
+    const botPlayer = {
+        ws: { send: () => { } }, // Dummy WS for bots
+        name: `Bot ${botId}`,
+        color: color,
+        ready: true,
+        isBot: true
+    };
+
+    room.players.push(botPlayer);
+
+    broadcastToRoom(room, {
+        type: 'player_joined',
+        players: room.players.map(p => ({
+            name: p.name,
+            color: p.color,
+            ready: p.ready,
+            isBot: p.isBot
+        }))
+    });
+
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: `${botPlayer.name} (Bot) has joined the game!`
     });
 }
 
