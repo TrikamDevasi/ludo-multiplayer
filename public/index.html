@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +9,11 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#667eea">
     <title>Ludo Multiplayer - Play with Friends</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <!-- Loading Spinner -->
     <div id="loadingOverlay" class="loading-overlay">
@@ -20,7 +23,7 @@
 
     <div class="container">
         <h1>🎲 Ludo Multiplayer</h1>
-        
+
         <!-- Connection Status -->
         <div id="connectionStatus" class="status-bar" role="status" aria-live="polite">
             <span class="status-dot" aria-hidden="true"></span>
@@ -32,17 +35,11 @@
             <div class="menu-card">
                 <h2>🎲 Welcome to Ludo!</h2>
                 <p class="game-description">Classic board game - Race your tokens to the center!</p>
-                
+
                 <label for="playerNameInput" class="visually-hidden">Your Name</label>
-                <input 
-                    type="text" 
-                    id="playerNameInput" 
-                    placeholder="Enter your name" 
-                    maxlength="20"
-                    aria-label="Player name"
-                    autocomplete="off"
-                >
-                
+                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20"
+                    aria-label="Player name" autocomplete="off">
+
                 <div class="setting-group">
                     <label for="playerCountSelect">Number of Players:</label>
                     <select id="playerCountSelect" class="setting-select" aria-label="Select number of players">
@@ -63,14 +60,8 @@
 
                 <div id="joinRoomSection" class="hidden">
                     <label for="roomIdInput" class="visually-hidden">Room ID</label>
-                    <input 
-                        type="text" 
-                        id="roomIdInput" 
-                        placeholder="Enter Room ID" 
-                        maxlength="6"
-                        aria-label="Room ID"
-                        autocomplete="off"
-                    >
+                    <input type="text" id="roomIdInput" placeholder="Enter Room ID" maxlength="6" aria-label="Room ID"
+                        autocomplete="off">
                     <button id="joinRoomConfirmBtn" class="btn btn-success">Join Game</button>
                 </div>
             </div>
@@ -83,19 +74,25 @@
                 <p>Share this Room ID with your friends:</p>
                 <div class="room-id-display">
                     <span id="displayRoomId" aria-label="Room ID"></span>
-                    <button id="copyRoomIdBtn" class="btn-icon" title="Copy Room ID" aria-label="Copy room ID to clipboard">
+                    <button id="copyRoomIdBtn" class="btn-icon" title="Copy Room ID"
+                        aria-label="Copy room ID to clipboard">
                         📋
                     </button>
                 </div>
-                
+
                 <div id="playersWaiting">
                     <h3>Players:</h3>
                     <div id="playersList" role="list"></div>
                 </div>
 
-                <button id="startGameBtn" class="btn btn-success" disabled>
-                    <span class="btn-icon">🎮</span> Start Game
-                </button>
+                <div class="button-group">
+                    <button id="startGameBtn" class="btn btn-success" disabled>
+                        <span class="btn-icon">🎮</span> Start Game
+                    </button>
+                    <button id="addBotBtn" class="btn btn-secondary">
+                        <span class="btn-icon">🤖</span> Add Bot
+                    </button>
+                </div>
                 <p class="waiting-hint">Waiting for more players...</p>
             </div>
         </div>
@@ -111,13 +108,7 @@
 
             <div class="game-container">
                 <!-- Ludo Board using Canvas -->
-                <canvas 
-                    id="ludoCanvas" 
-                    width="600" 
-                    height="600"
-                    aria-label="Ludo game board"
-                    role="img"
-                ></canvas>
+                <canvas id="ludoCanvas" width="600" height="600" aria-label="Ludo game board" role="img"></canvas>
 
                 <!-- Dice Area -->
                 <div class="dice-area">
@@ -125,20 +116,17 @@
                         <div id="dice" class="dice" role="img" aria-label="Dice">
                             <div class="dice-face">?</div>
                         </div>
-                        <button 
-                            id="rollDiceBtn" 
-                            class="btn btn-primary" 
-                            aria-label="Roll dice"
-                        >
+                        <button id="rollDiceBtn" class="btn btn-primary" aria-label="Roll dice">
                             🎲 Roll Dice
                         </button>
                         <div id="diceResult" class="dice-result hidden"></div>
-                        
+
                         <!-- Chat System -->
                         <div class="chat-system">
                             <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"></div>
                             <div class="chat-input-area">
-                                <input type="text" id="chatInput" placeholder="Press Enter to send..." aria-label="Chat message">
+                                <input type="text" id="chatInput" placeholder="Press Enter to send..."
+                                    aria-label="Chat message">
                                 <button id="sendChatBtn" class="btn btn-icon">➚</button>
                             </div>
                         </div>
@@ -172,4 +160,5 @@
 
     <script src="game.js"></script>
 </body>
+
 </html>
