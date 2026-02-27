@@ -321,7 +321,7 @@ function updatePlayersList(players) {
         item.style.borderLeftColor = COLORS[player.color];
         item.innerHTML = `
             <div class="player-color-dot" style="background-color: ${COLORS[player.color]}"></div>
-            <span>${player.name} ${player.color === myColor ? '(You)' : ''}</span>
+            <span>${player.name} ${player.color === myColor ? '(You)' : ''} ${player.isBot ? '🤖' : ''}</span>
         `;
         playersList.appendChild(item);
     });
@@ -626,38 +626,62 @@ function getCoordinates(position, color) {
  * Draws all player tokens in their current positions.
  */
 function drawTokens() {
+    // Group tokens by their global position to handle offsets
+    const positionGroups = {};
+
     Object.keys(gameState.players).forEach(color => {
         const player = gameState.players[color];
         player.tokens.forEach(token => {
-            let x, y;
-
             if (token.position === -1) {
-                // Base positions
-                const baseOffsets = [
-                    { dx: 1.5, dy: 1.5 }, { dx: 4.5, dy: 1.5 },
-                    { dx: 1.5, dy: 4.5 }, { dx: 4.5, dy: 4.5 }
-                ];
-
-                // Base origins
-                let bx = 0, by = 0;
-                if (color === 'blue') bx = 9;
-                else if (color === 'green') { bx = 9; by = 9; }
-                else if (color === 'yellow') by = 9;
-
-                x = (bx + baseOffsets[token.id].dx) * CELL_SIZE; // Pixel coords
-                y = (by + baseOffsets[token.id].dy) * CELL_SIZE;
+                // Base positions - no overlap logic needed as they are fixed
+                drawBaseToken(token, color);
             } else {
+                // Main path or home stretch
                 const coords = getCoordinates(token.position, color);
-                x = coords.x * CELL_SIZE;
-                y = coords.y * CELL_SIZE;
-
-                // Handle multiple tokens on same spot?
-                // For now, just draw on top. Ideally offset them.
+                const posKey = `${coords.x},${coords.y}`;
+                if (!positionGroups[posKey]) positionGroups[posKey] = [];
+                positionGroups[posKey].push({ token, color, coords });
             }
-
-            drawToken(x, y, color, token.isSafe);
         });
     });
+
+    // Draw grouped tokens with offsets
+    Object.keys(positionGroups).forEach(posKey => {
+        const tokens = positionGroups[posKey];
+        const count = tokens.length;
+
+        tokens.forEach((t, index) => {
+            let offsetX = 0;
+            let offsetY = 0;
+
+            if (count > 1) {
+                const angle = (index / count) * Math.PI * 2;
+                offsetX = Math.cos(angle) * (TOKEN_RADIUS * 0.5);
+                offsetY = Math.sin(angle) * (TOKEN_RADIUS * 0.5);
+            }
+
+            const x = t.coords.x * CELL_SIZE + offsetX;
+            const y = t.coords.y * CELL_SIZE + offsetY;
+            drawToken(x, y, t.color, t.token.isSafe);
+        });
+    });
+}
+
+function drawBaseToken(token, color) {
+    const baseOffsets = [
+        { dx: 1.5, dy: 1.5 }, { dx: 4.5, dy: 1.5 },
+        { dx: 1.5, dy: 4.5 }, { dx: 4.5, dy: 4.5 }
+    ];
+
+    let bx = 0, by = 0;
+    if (color === 'blue') bx = 9;
+    else if (color === 'green') { bx = 9; by = 9; }
+    else if (color === 'yellow') by = 9;
+
+    const x = (bx + baseOffsets[token.id].dx) * CELL_SIZE;
+    const y = (by + baseOffsets[token.id].dy) * CELL_SIZE;
+
+    drawToken(x, y, color, token.isSafe);
 }
 
 /**
