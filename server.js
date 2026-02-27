@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
-const { generateRoomId, createInitialGameState, COLORS, START_INDEX, getGlobalPosition, checkValidMoves, checkCapture } = require('./utils/gameLogic');
+const { generateRoomId, createInitialGameState, COLORS, START_INDEX, getGlobalPosition, checkValidMoves, checkCapture, getBotMove } = require('./utils/gameLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -222,6 +222,8 @@ function startGame(ws) {
         type_meta: 'system',
         message: 'Game has started! Good luck!'
     });
+
+    checkBotTurn(room);
 }
 
 /**
@@ -391,6 +393,118 @@ function nextTurn(room) {
         currentTurn: gameState.currentTurn,
         gameState: gameState
     });
+
+    checkBotTurn(room);
+}
+
+/**
+ * Checks if the current turn belongs to a bot and triggers bot action.
+ * @param {Object} room - The current game room.
+ */
+function checkBotTurn(room) {
+    const gameState = room.gameState;
+    if (!gameState || gameState.gameOver) return;
+
+    const currentPlayer = room.players.find(p => p.color === gameState.currentTurn);
+    if (currentPlayer && currentPlayer.isBot) {
+        setTimeout(() => {
+            botRollDice(room, currentPlayer);
+        }, 1500); // Wait after turn change
+    }
+}
+
+/**
+ * Bot rolls the dice.
+ */
+function botRollDice(room, botPlayer) {
+    const gameState = room.gameState;
+    const diceValue = Math.floor(Math.random() * 6) + 1;
+    gameState.diceValue = diceValue;
+
+    if (diceValue === 6) {
+        gameState.consecutiveSixes++;
+    } else {
+        gameState.consecutiveSixes = 0;
+    }
+
+    broadcastToRoom(room, {
+        type: 'dice_rolled',
+        diceValue: diceValue,
+        currentTurn: gameState.currentTurn
+    });
+
+    if (gameState.consecutiveSixes === 3) {
+        broadcastToRoom(room, {
+            type: 'chat_message',
+            type_meta: 'system',
+            message: `${botPlayer.name} rolled three 6s! Turn lost.`
+        });
+        setTimeout(() => {
+            nextTurn(room);
+        }, 1500);
+        return;
+    }
+
+    setTimeout(() => {
+        const tokenId = getBotMove(gameState, botPlayer.color, diceValue);
+
+        if (tokenId === null) {
+            nextTurn(room);
+        } else {
+            botMoveToken(room, botPlayer, tokenId);
+        }
+    }, 1500); // Wait after roll
+}
+
+/**
+ * Bot moves a token.
+ */
+function botMoveToken(room, botPlayer, tokenId) {
+    const gameState = room.gameState;
+    const player = gameState.players[botPlayer.color];
+    const token = player.tokens[tokenId];
+
+    let extraTurn = false;
+
+    if (token.position === -1 && gameState.diceValue === 6) {
+        token.position = 0;
+        token.isSafe = false;
+    } else if (token.position >= 0 && !token.isHome) {
+        const newPosition = token.position + gameState.diceValue;
+        if (newPosition === 57) {
+            token.position = 57;
+            token.isHome = true;
+            player.score++;
+            extraTurn = true;
+        } else if (newPosition < 57) {
+            token.position = newPosition;
+            const captured = checkCapture(gameState, botPlayer.color, newPosition);
+            if (captured) extraTurn = true;
+        }
+    }
+
+    broadcastToRoom(room, {
+        type: 'token_moved',
+        color: botPlayer.color,
+        tokenId: tokenId,
+        gameState: gameState
+    });
+
+    if (player.score === 4) {
+        gameState.gameOver = true;
+        gameState.winner = botPlayer.color;
+        broadcastToRoom(room, { type: 'game_over', winner: botPlayer.color });
+        return;
+    }
+
+    if (gameState.diceValue === 6 || extraTurn) {
+        gameState.diceValue = null;
+        setTimeout(() => {
+            botRollDice(room, botPlayer);
+        }, 1500);
+    } else {
+        nextTurn(room);
+    }
 }
 
 /**
