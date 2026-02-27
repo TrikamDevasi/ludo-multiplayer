@@ -120,6 +120,76 @@ function checkCapture(gameState, currentColor, relativePos) {
     return captured;
 }
 
+/**
+ * Selects the best move for a bot player.
+ * @param {Object} gameState - The current game state.
+ * @param {string} color - The bot's color.
+ * @param {number} diceValue - The value rolled on the dice.
+ * @returns {number|null} The ID of the token to move, or null if no moves possible.
+ */
+function getBotMove(gameState, color, diceValue) {
+    const player = gameState.players[color];
+    const validTokenIds = [];
+
+    // Identify all valid moves
+    for (let token of player.tokens) {
+        if (token.position === -1) {
+            if (diceValue === 6) validTokenIds.push(token.id);
+        } else if (!token.isHome) {
+            if (token.position + diceValue <= HOME_STRETCH_LENGTH) {
+                validTokenIds.push(token.id);
+            }
+        }
+    }
+
+    if (validTokenIds.length === 0) return null;
+
+    // 1. Check for tokens that can reach home
+    for (let id of validTokenIds) {
+        if (player.tokens[id].position + diceValue === HOME_STRETCH_LENGTH) return id;
+    }
+
+    // 2. Check for captures
+    for (let id of validTokenIds) {
+        const token = player.tokens[id];
+        const newPos = token.position === -1 ? 0 : token.position + diceValue;
+
+        // Use a temporary clone or simulation to check capture
+        const myGlobalPos = getGlobalPosition(newPos, color);
+        if (myGlobalPos !== -1 && !SAFE_SPOTS.includes(myGlobalPos)) {
+            for (let otherColor in gameState.players) {
+                if (otherColor === color) continue;
+                for (let otherToken of gameState.players[otherColor].tokens) {
+                    if (otherToken.position !== -1 && !otherToken.isHome) {
+                        if (getGlobalPosition(otherToken.position, otherColor) === myGlobalPos) {
+                            return id;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. Bring token out of base
+    for (let id of validTokenIds) {
+        if (player.tokens[id].position === -1) return id;
+    }
+
+    // 4. Move token closest to home (highest position)
+    let bestId = validTokenIds[0];
+    let maxPos = player.tokens[bestId].position;
+
+    for (let i = 1; i < validTokenIds.length; i++) {
+        const id = validTokenIds[i];
+        if (player.tokens[id].position > maxPos) {
+            maxPos = player.tokens[id].position;
+            bestId = id;
+        }
+    }
+
+    return bestId;
+}
+
 module.exports = {
     generateRoomId,
     createInitialGameState,
@@ -130,5 +200,6 @@ module.exports = {
     HOME_STRETCH_LENGTH,
     getGlobalPosition,
     checkValidMoves,
-    checkCapture
+    checkCapture,
+    getBotMove
 };
