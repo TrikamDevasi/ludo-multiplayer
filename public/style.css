@@ -372,6 +372,18 @@ input[type="text"]:disabled {
     color: white;
 }
 
+.btn-secondary:hover {
+    background: #4b5563;
+}
+
+#addBotBtn {
+    background: var(--info-color);
+}
+
+#addBotBtn:hover {
+    background: #2563eb;
+}
+
 .btn-success {
     background: var(--success-color);
     color: white;
