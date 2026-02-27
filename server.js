@@ -294,10 +294,13 @@ function moveToken(ws, data) {
 
     if (!token) return;
 
+    let extraTurn = false;
+
     // Bring token out
     if (token.position === -1 && gameState.diceValue === 6) {
         token.position = 0;
         token.isSafe = false;
+        // Rolling a 6 already gives an extra turn
     }
     // Move token
     else if (token.position >= 0 && !token.isHome) {
@@ -307,11 +310,26 @@ function moveToken(ws, data) {
             token.position = 57;
             token.isHome = true;
             player.score++;
+            extraTurn = true; // Reaching home gives extra turn
+
+            broadcastToRoom(room, {
+                type: 'chat_message',
+                type_meta: 'system',
+                message: `${ws.playerName} reached home! Extra turn awarded.`
+            });
         } else if (newPosition < 57) {
             token.position = newPosition;
 
             // Check for capture
-            checkCapture(gameState, ws.playerColor, newPosition);
+            const captured = checkCapture(gameState, ws.playerColor, newPosition);
+            if (captured) {
+                extraTurn = true;
+                broadcastToRoom(room, {
+                    type: 'chat_message',
+                    type_meta: 'system',
+                    message: `${ws.playerName} captured a token! Extra turn awarded.`
+                });
+            }
         }
     }
 
@@ -340,11 +358,14 @@ function moveToken(ws, data) {
         return;
     }
 
-    // Next turn (unless rolled 6)
-    if (gameState.diceValue !== 6) {
-        nextTurn(room);
-    } else {
+    // Next turn logic
+    if (gameState.diceValue === 6 || extraTurn) {
         gameState.diceValue = null;
+        // Current player keeps turn
+        // If they keep turn, we might need to check if they have valid moves with a null dice? No, they need to roll.
+        // The frontend enables rollDiceBtn if it's their turn and diceValue is null.
+    } else {
+        nextTurn(room);
     }
 }
 

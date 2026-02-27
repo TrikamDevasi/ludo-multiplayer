@@ -93,11 +93,12 @@ function checkValidMoves(gameState, color, diceValue) {
  */
 function checkCapture(gameState, currentColor, relativePos) {
     const myGlobalPos = getGlobalPosition(relativePos, currentColor);
+    let captured = false;
 
     // If in safe spot (global) or safe zone (base/home stretch), no capture
-    if (myGlobalPos === -1) return;
+    if (myGlobalPos === -1) return false;
 
-    if (SAFE_SPOTS.includes(myGlobalPos)) return;
+    if (SAFE_SPOTS.includes(myGlobalPos)) return false;
 
     for (let color in gameState.players) {
         if (color === currentColor) continue;
@@ -111,12 +112,12 @@ function checkCapture(gameState, currentColor, relativePos) {
                     // Capture!
                     token.position = -1;
                     token.isSafe = true;
-                    // Provide extra turn reward? (Standard Ludo rule)
-                    // For now, minimal changes.
+                    captured = true;
                 }
             }
         }
     }
+    return captured;
 }
 
 module.exports = {
