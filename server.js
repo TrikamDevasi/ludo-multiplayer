@@ -138,6 +138,28 @@ function joinRoom(ws, data) {
         return;
     }
 
+    const existingPlayer = room.players.find(p => p.name === data.playerName && !p.ws.readyState); // Simplified logic
+
+    if (existingPlayer) {
+        existingPlayer.ws = ws;
+        ws.roomId = data.roomId;
+        ws.playerName = data.playerName;
+        ws.playerColor = existingPlayer.color;
+
+        ws.send(JSON.stringify({
+            type: 'rejoin_success',
+            gameState: room.gameState,
+            color: existingPlayer.color
+        }));
+
+        broadcastToRoom(room, {
+            type: 'chat_message',
+            type_meta: 'system',
+            message: `${data.playerName} has re-joined the game!`
+        });
+        return;
+    }
+
     const color = COLORS[room.players.length];
     room.players.push({
         ws,
