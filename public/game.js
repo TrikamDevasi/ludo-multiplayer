@@ -104,13 +104,28 @@ function savePlayerName(name) {
 }
 
 /**
- * Loads the player name from local storage and updates the input field.
+ * Saves the roomId to local storage.
  */
-function loadPlayerName() {
+function saveRoomId(roomId) {
+    try {
+        localStorage.setItem('ludoLastRoomId', roomId);
+    } catch (e) {
+        console.warn('LocalStorage not available');
+    }
+}
+
+/**
+ * Loads the player and room info from local storage.
+ */
+function loadSessionData() {
     try {
         const name = localStorage.getItem('ludoPlayerName');
-        if (name) {
-            playerNameInput.value = name;
+        if (name) playerNameInput.value = name;
+
+        const roomId = localStorage.getItem('ludoLastRoomId');
+        if (roomId) {
+            roomIdInput.value = roomId;
+            // Optionally hint the user they were in a room
         }
     } catch (e) {
         console.warn('LocalStorage not available');
