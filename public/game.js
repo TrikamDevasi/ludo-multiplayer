@@ -750,41 +750,49 @@ async function animateTokenMove(color, tokenId, oldState, newState) {
     const oldToken = oldState.players[color].tokens[tokenId];
     const newToken = newState.players[color].tokens[tokenId];
 
-    if (oldToken.position === newToken.position) {
-        drawBoard();
-        return;
-    }
-
     isAnimating = true;
 
-    // If coming out of base
-    if (oldToken.position === -1 && newToken.position === 0) {
-        // Just jump to 0 for now or animate a quick slide
+    // 1. Handle Capture (Jumping back to base)
+    if (newToken.position === -1 && oldToken.position !== -1) {
+        // Find if any other player's tokens moved to base? 
+        // No, we only animate the current color's token move event.
+        // Actually, if a token is captured, the server sends a 'token_moved' for the ATTACKER,
+        // but the 'gameState' in that message shows the DEFENDER's token at -1.
+        // The current animateTokenMove is called with the ATTACKER's info.
+        // We should just draw the final state for captures since it happens instantly.
         drawBoard();
         isAnimating = false;
         return;
     }
 
-    // Step by step animation
-    const path = [];
-    for (let p = oldToken.position + 1; p <= newToken.position; p++) {
-        path.push(p);
+    // 2. Handle Coming out of Base
+    if (oldToken.position === -1 && newToken.position === 0) {
+        drawBoard();
+        isAnimating = false;
+        return;
     }
 
-    // This handles forward movement. Capture (jumping back to -1) is handled by immediate redraw in the end.
+    // 3. Step-by-Step Forward Animation
+    if (newToken.position > oldToken.position) {
+        const path = [];
+        for (let p = oldToken.position + 1; p <= newToken.position; p++) {
+            path.push(p);
+        }
 
-    for (let pos of path) {
-        // Create a temporary state for drawing
-        const tempState = JSON.parse(JSON.stringify(newState));
-        tempState.players[color].tokens[tokenId].position = pos;
+        for (let pos of path) {
+            const tempState = JSON.parse(JSON.stringify(newState));
+            tempState.players[color].tokens[tokenId].position = pos;
 
-        // Update global gameState temporarily for drawBoard
-        const realState = gameState;
-        gameState = tempState;
-        drawBoard();
-        gameState = realState;
+            // Keep the old positions for other tokens if they were captured in this turn
+            // to avoid flickering? Actually newState has the updated positions.
 
-        await new Promise(resolve => setTimeout(resolve, 200));
+            const realState = gameState;
+            gameState = tempState;
+            drawBoard();
+            gameState = realState;
+
+            await new Promise(resolve => setTimeout(resolve, 150));
+        }
     }
 
     drawBoard();
