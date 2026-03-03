@@ -18,6 +18,14 @@ const START_INDEX = {
     yellow: 39
 };
 
+const CONSTANTS = {
+    START_INDEX,
+    SAFE_SPOTS,
+    PLAYER_COLORS,
+    BOARD_PATH_LENGTH,
+    HOME_STRETCH_LENGTH
+};
+
 /**
  * Converts a relative token position to a global board position.
  * @param {number} relativePos - The position relative to the starting point (0-51).
