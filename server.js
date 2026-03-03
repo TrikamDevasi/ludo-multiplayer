@@ -274,12 +274,32 @@ function rollDice(ws) {
         return;
     }
 
-    // Check if player has valid moves
+    // Check for forced moves
     setTimeout(() => {
-        const hasValidMoves = checkValidMoves(gameState, ws.playerColor, diceValue);
+        const player = gameState.players[ws.playerColor];
+        const validTokens = player.tokens.filter(t => {
+            if (t.isHome) return false;
+            if (t.position === -1) return diceValue === 6;
+            return t.position + diceValue <= 57;
+        });
 
-        if (!hasValidMoves) {
+        if (validTokens.length === 0) {
+            broadcastToRoom(room, {
+                type: 'chat_message',
+                type_meta: 'system',
+                message: `${ws.playerName} has no valid moves.`
+            });
             nextTurn(room);
+        } else if (validTokens.length === 1) {
+            // Auto-move the only valid token
+            broadcastToRoom(room, {
+                type: 'chat_message',
+                type_meta: 'system',
+                message: `${ws.playerName} only has one valid move. Moving automatically...`
+            });
+            setTimeout(() => {
+                moveToken(ws, { tokenId: validTokens[0].id });
+            }, 800);
         }
     }, 1500);
 }
