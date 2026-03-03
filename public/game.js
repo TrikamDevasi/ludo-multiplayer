@@ -413,18 +413,24 @@ function updateTurn(currentTurn) {
  */
 function showDiceRoll(value) {
     const diceDiv = document.getElementById('dice');
+    const rollBtn = document.getElementById('rollDiceBtn');
+
+    if (rollBtn) rollBtn.disabled = true;
     diceDiv.classList.add('rolling');
 
     // Fast-changing random numbers for effect
+    let count = 0;
     const rollingInterval = setInterval(() => {
         diceDiv.innerHTML = `<div class="dice-face">${Math.floor(Math.random() * 6) + 1}</div>`;
-    }, 50);
+        count++;
+        if (count > 10) {
+            clearInterval(rollingInterval);
+            diceDiv.classList.remove('rolling');
+            diceDiv.innerHTML = `<div class="dice-face">${value}</div>`;
 
-    setTimeout(() => {
-        clearInterval(rollingInterval);
-        diceDiv.classList.remove('rolling');
-        diceDiv.innerHTML = `<div class="dice-face">${value}</div>`;
-    }, 600);
+            // Note: rollBtn re-enabling is handled by turn_changed or move_token logic from server
+        }
+    }, 60);
 }
 
 function showGameOver(winner, stats) {
