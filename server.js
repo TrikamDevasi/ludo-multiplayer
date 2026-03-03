@@ -300,7 +300,15 @@ function moveToken(ws, data) {
     const player = gameState.players[ws.playerColor];
     const token = player.tokens[data.tokenId];
 
-    if (!token) return;
+    if (!token || token.isHome) return;
+
+    // Server-side Move Validation
+    // Check if the specific token can move the diceValue
+    if (token.position === -1) {
+        if (gameState.diceValue !== 6) return;
+    } else {
+        if (token.position + gameState.diceValue > 57) return;
+    }
 
     let extraTurn = false;
 
