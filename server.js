@@ -133,6 +133,11 @@ function joinRoom(ws, data) {
         return;
     }
 
+    if (room.gameState && room.gameState.gameStarted) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Game already in progress' }));
+        return;
+    }
+
     const color = COLORS[room.players.length];
     room.players.push({
         ws,
