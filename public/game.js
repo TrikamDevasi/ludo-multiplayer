@@ -320,13 +320,25 @@ function showWaitingScreen() {
 function updatePlayersList(players) {
     playersList.innerHTML = '';
 
-    players.forEach(player => {
+    players.forEach((player, index) => {
         const item = document.createElement('div');
         item.className = 'player-item';
         item.style.borderLeftColor = COLORS[player.color];
+
+        const isHost = index === 0; // The first player is currently the host
+
         item.innerHTML = `
             <div class="player-color-dot" style="background-color: ${COLORS[player.color]}"></div>
-            <span>${player.name} ${player.color === myColor ? '(You)' : ''} ${player.isBot ? '🤖' : ''}</span>
+            <div class="player-details">
+                <span class="player-name-text">${player.name} ${player.color === myColor ? '(You)' : ''}</span>
+                <div class="player-badges">
+                    ${isHost ? '<span class="badge host-badge">Host</span>' : ''}
+                    ${player.isBot ? '<span class="badge bot-badge">Bot</span>' : ''}
+                </div>
+            </div>
+            <div class="player-status ${player.ready ? 'ready' : 'waiting'}">
+                ${player.ready ? 'Ready ✓' : 'Waiting...'}
+            </div>
         `;
         playersList.appendChild(item);
     });
