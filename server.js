@@ -551,10 +551,30 @@ function handleDisconnect(ws) {
             if (room.players.length === 0) {
                 rooms.delete(ws.roomId);
             } else {
+                // Host Migration
+                if (room.host === ws) {
+                    // Filter out bots to find a human host? 
+                    // Actually, let's just pick the first player who isn't a bot.
+                    const newHost = room.players.find(p => !p.isBot);
+                    if (newHost) {
+                        room.host = newHost.ws;
+                        broadcastToRoom(room, {
+                            type: 'chat_message',
+                            type_meta: 'system',
+                            message: `${newHost.name} is now the host.`
+                        });
+                    }
+                }
+
                 const playerName = ws.playerName || 'A player';
                 broadcastToRoom(room, {
                     type: 'player_left',
-                    players: room.players.map(p => ({ name: p.name, color: p.color }))
+                    players: room.players.map(p => ({
+                        name: p.name,
+                        color: p.color,
+                        ready: p.ready,
+                        isBot: p.isBot
+                    }))
                 });
 
                 broadcastToRoom(room, {
