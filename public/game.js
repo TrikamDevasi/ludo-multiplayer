@@ -825,18 +825,13 @@ function handleCanvasClick(event) {
     if (!gameState || gameState.currentTurn !== myColor || !gameState.diceValue) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    // Check which token was clicked
-    const player = gameState.players[myColor];
 
     // Scale coordinates if canvas is resized via CSS
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    const clickX = x * scaleX;
-    const clickY = y * scaleY;
+    const clickX = (event.clientX - rect.left) * scaleX;
+    const clickY = (event.clientY - rect.top) * scaleY;
 
     for (let token of player.tokens) {
         let tx, ty;
