@@ -2,7 +2,16 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
-const { generateRoomId, createInitialGameState, COLORS, START_INDEX, getGlobalPosition, checkValidMoves, checkCapture, getBotMove } = require('./utils/gameLogic');
+const {
+    generateRoomId,
+    createInitialGameState,
+    PLAYER_COLORS,
+    GOAL_POSITION,
+    getGlobalPosition,
+    checkValidMoves,
+    checkCapture,
+    getBotMove
+} = require('./utils/gameLogic');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,29 +19,17 @@ const wss = new WebSocket.Server({ server });
 
 app.use(express.static('public'));
 
-// Basic logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
 });
 
 const PORT = process.env.PORT || 3000;
-
-// Map to store active game rooms with roomId as key
 const rooms = new Map();
 
-// const COLORS = ['red', 'blue', 'green', 'yellow']; // Removed
-
-// START_INDEX and getGlobalPosition moved to utils/gameLogic.js
-
-
-// function createInitialGameState(playerCount) { ... } // Removed
-
-// Initialize WebSocket connection handler
 wss.on('connection', (ws) => {
     console.log('New client connected');
 
-    // Listen for incoming messages from the client
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
@@ -42,56 +39,30 @@ wss.on('connection', (ws) => {
         }
     });
 
-    ws.on('close', () => {
-        handleDisconnect(ws);
-    });
+    ws.on('close', () => handleDisconnect(ws));
 });
 
-/**
- * Handles incoming WebSocket messages.
- * @param {WebSocket} ws - The current WebSocket client.
- * @param {Object} data - The message data received.
- */
 function handleMessage(ws, data) {
     switch (data.type) {
-        case 'create_room':
-            createRoom(ws, data);
-            break;
-        case 'join_room':
-            joinRoom(ws, data);
-            break;
-        case 'start_game':
-            startGame(ws);
-            break;
-        case 'roll_dice':
-            rollDice(ws);
-            break;
-        case 'move_token':
-            moveToken(ws, data);
-            break;
-        case 'chat_message':
-            handleChatMessage(ws, data);
-            break;
-        case 'add_bot':
-            addBot(ws);
-            break;
+        case 'create_room': createRoom(ws, data); break;
+        case 'join_room': joinRoom(ws, data); break;
+        case 'start_game': startGame(ws); break;
+        case 'roll_dice': rollDice(ws); break;
+        case 'move_token': moveToken(ws, data); break;
+        case 'chat_message': handleChatMessage(ws, data); break;
+        case 'add_bot': addBot(ws); break;
     }
 }
 
-/**
- * Creates a new game room and assigns the host.
- * @param {WebSocket} ws - The current WebSocket client.
- * @param {Object} data - The request data (playerName, playerCount).
- */
 function createRoom(ws, data) {
-    const roomId = generateRoomId();
+    const roomId = generateRoomId(Array.from(rooms.keys()));
     const room = {
         id: roomId,
         host: ws,
         players: [{
             ws,
             name: data.playerName,
-            color: COLORS[0],
+            color: PLAYER_COLORS[0],  // ✅ FIX #2
             ready: false
         }],
         maxPlayers: data.playerCount || 2,
@@ -101,11 +72,13 @@ function createRoom(ws, data) {
     rooms.set(roomId, room);
     ws.roomId = roomId;
     ws.playerName = data.playerName;
-    ws.playerColor = COLORS[0];
+    ws.playerColor = PLAYER_COLORS[0];  // ✅ FIX #2
 
+    // ✅ FIX #1: Added type: 'room_created'
     ws.send(JSON.stringify({
-        roomId: roomId,
-        color: COLORS[0]
+        type: 'room_created',
+        roomId,
+        color: PLAYER_COLORS[0]
     }));
 
     broadcastToRoom(room, {
@@ -115,11 +88,6 @@ function createRoom(ws, data) {
     });
 }
 
-/**
- * Joins an existing game room.
- * @param {WebSocket} ws - The current WebSocket client.
- * @param {Object} data - The request data (roomId, playerName).
- */
 function joinRoom(ws, data) {
     const room = rooms.get(data.roomId);
 
@@ -127,18 +95,19 @@ function joinRoom(ws, data) {
         ws.send(JSON.stringify({ type: 'error', message: 'Room not found' }));
         return;
     }
-
     if (room.players.length >= room.maxPlayers) {
         ws.send(JSON.stringify({ type: 'error', message: 'Room is full' }));
         return;
     }
-
     if (room.gameState && room.gameState.gameStarted) {
         ws.send(JSON.stringify({ type: 'error', message: 'Game already in progress' }));
         return;
     }
 
-    const existingPlayer = room.players.find(p => p.name === data.playerName && !p.ws.readyState); // Simplified logic
+    // ✅ FIX #3: Correct reconnection detection
+    const existingPlayer = room.players.find(
+        p => p.name === data.playerName && p.ws.readyState !== WebSocket.OPEN
+    );
 
     if (existingPlayer) {
         existingPlayer.ws = ws;
@@ -160,17 +129,19 @@ function joinRoom(ws, data) {
         return;
     }
 
-    const color = COLORS[room.players.length];
-    room.players.push({
-        ws,
-        name: data.playerName,
-        color: color,
-        ready: false
-    });
+    const color = PLAYER_COLORS[room.players.length];
+    room.players.push({ ws, name: data.playerName, color, ready: false });
 
     ws.roomId = data.roomId;
     ws.playerName = data.playerName;
     ws.playerColor = color;
+
+    // Tell the joining player their color
+    ws.send(JSON.stringify({
+        type: 'join_success',
+        roomId: data.roomId,
+        color
+    }));
 
     broadcastToRoom(room, {
         type: 'player_joined',
@@ -184,10 +155,6 @@ function joinRoom(ws, data) {
     });
 }
 
-/**
- * Adds a bot player to the room.
- * @param {WebSocket} ws - The host's WebSocket client.
- */
 function addBot(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || room.host !== ws) return;
@@ -198,12 +165,12 @@ function addBot(ws) {
     }
 
     const botId = room.players.filter(p => p.isBot).length + 1;
-    const color = COLORS[room.players.length];
+    const color = PLAYER_COLORS[room.players.length];  // ✅ FIX #2
 
     const botPlayer = {
-        ws: { send: () => { } }, // Dummy WS for bots
+        ws: { send: () => { }, readyState: WebSocket.OPEN }, // ✅ added readyState for safety
         name: `Bot ${botId}`,
-        color: color,
+        color,
         ready: true,
         isBot: true
     };
@@ -213,10 +180,7 @@ function addBot(ws) {
     broadcastToRoom(room, {
         type: 'player_joined',
         players: room.players.map(p => ({
-            name: p.name,
-            color: p.color,
-            ready: p.ready,
-            isBot: p.isBot
+            name: p.name, color: p.color, ready: p.ready, isBot: p.isBot
         }))
     });
 
@@ -227,10 +191,6 @@ function addBot(ws) {
     });
 }
 
-/**
- * Starts the game for the specified room.
- * @param {WebSocket} ws - The host's WebSocket client.
- */
 function startGame(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || room.host !== ws) return;
@@ -247,22 +207,12 @@ function startGame(ws) {
     broadcastToRoom(room, {
         type: 'chat_message',
         type_meta: 'system',
-        message: 'Game has started! Good luck!'
-    });
-
-    broadcastToRoom(room, {
-        type: 'chat_message',
-        type_meta: 'system',
-        message: 'A new game begins! Capture opponents for extra turns!'
+        message: 'Game has started! Good luck! Capture opponents for extra turns!'
     });
 
     checkBotTurn(room);
 }
 
-/**
- * Rolls the dice for the current player's turn.
- * @param {WebSocket} ws - The current player's WebSocket client.
- */
 function rollDice(ws) {
     const room = rooms.get(ws.roomId);
     if (!room || !room.gameState) return;
@@ -274,18 +224,22 @@ function rollDice(ws) {
         return;
     }
 
+    // ✅ Guard: don't allow rolling if dice already rolled and move pending
+    if (gameState.diceValue !== null) {
+        ws.send(JSON.stringify({ type: 'error', message: 'Already rolled. Move a token first.' }));
+        return;
+    }
+
     const diceValue = Math.floor(Math.random() * 6) + 1;
     gameState.diceValue = diceValue;
+    console.log(`[Dice] ${ws.playerName} (${ws.playerColor}) rolled ${diceValue}`);
 
-    if (diceValue === 6) {
-        gameState.consecutiveSixes++;
-    } else {
-        gameState.consecutiveSixes = 0;
-    }
+    if (diceValue === 6) gameState.consecutiveSixes++;
+    else gameState.consecutiveSixes = 0;
 
     broadcastToRoom(room, {
         type: 'dice_rolled',
-        diceValue: diceValue,
+        diceValue,
         currentTurn: gameState.currentTurn
     });
 
@@ -295,97 +249,97 @@ function rollDice(ws) {
             type_meta: 'system',
             message: `${ws.playerName} rolled three 6s! Turn lost.`
         });
-        setTimeout(() => {
-            nextTurn(room);
-        }, 1500);
+        gameState.diceValue = null;
+        setTimeout(() => nextTurn(room), 1500);
         return;
     }
 
-    // Check for forced moves
     setTimeout(() => {
+        // Guard: if diceValue was already consumed (player moved manually), skip
+        if (gameState.diceValue === null) return;
+
         const player = gameState.players[ws.playerColor];
+        if (!player) return;
+
         const validTokens = player.tokens.filter(t => {
             if (t.isHome) return false;
             if (t.position === -1) return diceValue === 6;
-            return t.position + diceValue <= 57;
+            return t.position + diceValue <= GOAL_POSITION;
         });
 
         if (validTokens.length === 0) {
             broadcastToRoom(room, {
                 type: 'chat_message',
                 type_meta: 'system',
-                message: `${ws.playerName} has no valid moves.`
+                message: `${ws.playerName} has no valid moves. Turn skipped.`
             });
+            gameState.diceValue = null;
             nextTurn(room);
         } else if (validTokens.length === 1) {
-            // Auto-move the only valid token
             broadcastToRoom(room, {
                 type: 'chat_message',
                 type_meta: 'system',
                 message: `${ws.playerName} only has one valid move. Moving automatically...`
             });
             setTimeout(() => {
-                moveToken(ws, { tokenId: validTokens[0].id });
+                // Double-guard: make sure move hasn't been made yet
+                if (gameState.diceValue !== null) {
+                    moveToken(ws, { tokenId: validTokens[0].id });
+                }
             }, 800);
         }
     }, 1500);
 }
 
-
-// checkValidMoves moved to utils/gameLogic.js
-
-/**
- * Moves a token based on the current dice value.
- * @param {WebSocket} ws - The switching player's WebSocket client.
- * @param {Object} data - The move data (tokenId).
- */
 function moveToken(ws, data) {
     const room = rooms.get(ws.roomId);
     if (!room || !room.gameState) return;
 
     const gameState = room.gameState;
     const player = gameState.players[ws.playerColor];
-    const token = player.tokens[data.tokenId];
+    if (!player) return;
 
+    // Look up token by id (not array index)
+    const token = player.tokens.find(t => t.id === data.tokenId);
     if (!token || token.isHome) return;
 
-    // Server-side Move Validation
-    // Check if the specific token can move the diceValue
+    // Validate move
     if (token.position === -1) {
-        if (gameState.diceValue !== 6) return;
+        if (gameState.diceValue !== 6) {
+            console.warn(`[Move] Rejected: ${ws.playerName} tried to move from base without a 6`);
+            return;
+        }
     } else {
-        if (token.position + gameState.diceValue > 57) return;
+        if (token.position + gameState.diceValue > GOAL_POSITION) {
+            console.warn(`[Move] Rejected: ${ws.playerName} tried to overshoot GOAL`);
+            return;
+        }
     }
+    console.log(`[Move] ${ws.playerName} moving token ${data.tokenId} by ${gameState.diceValue}`);
 
     let extraTurn = false;
 
-    // Bring token out
     if (token.position === -1 && gameState.diceValue === 6) {
         token.position = 0;
         token.isSafe = false;
-        // Rolling a 6 already gives an extra turn
-    }
-    // Move token
-    else if (token.position >= 0 && !token.isHome) {
+    } else if (token.position >= 0) {
         const newPosition = token.position + gameState.diceValue;
 
-        if (newPosition === 57) {
-            token.position = 57;
+        if (newPosition === GOAL_POSITION) {
+            token.position = GOAL_POSITION;
             token.isHome = true;
             player.score++;
-            extraTurn = true; // Reaching home gives extra turn
+            extraTurn = true;
 
             broadcastToRoom(room, {
                 type: 'chat_message',
                 type_meta: 'system',
-                message: `${ws.playerName} reached home! Extra turn awarded.`
+                message: `${ws.playerName}'s token reached home! Extra turn awarded.`
             });
-        } else if (newPosition < 57) {
+        } else {
             token.position = newPosition;
-
-            // Check for capture
             const captured = checkCapture(gameState, ws.playerColor, newPosition);
-            if (captured) {
+            if (captured.length > 0) {
                 extraTurn = true;
                 broadcastToRoom(room, {
                     type: 'chat_message',
@@ -400,59 +354,49 @@ function moveToken(ws, data) {
         type: 'token_moved',
         color: ws.playerColor,
         tokenId: data.tokenId,
-        gameState: gameState
+        gameState
     });
 
     // Check win condition
     if (player.score === 4) {
         gameState.gameOver = true;
         gameState.winner = ws.playerColor;
+        const winnerName = room.players.find(p => p.ws === ws)?.name || ws.playerColor;
 
-        broadcastToRoom(room, {
-            type: 'game_over',
-            winner: ws.playerColor
-        });
-
+        broadcastToRoom(room, { type: 'game_over', winner: ws.playerColor });
         broadcastToRoom(room, {
             type: 'chat_message',
             type_meta: 'system',
-            message: `🏆 GAME OVER! ${room.players.find(p => p.ws === ws)?.name || ws.playerColor} wins!`
+            message: `🏆 GAME OVER! ${winnerName} wins!`
         });
         return;
     }
 
-    // Next turn logic
     if (gameState.diceValue === 6 || extraTurn) {
         gameState.diceValue = null;
-        // Current player keeps turn
-        // If they keep turn, we might need to check if they have valid moves with a null dice? No, they need to roll.
-        // The frontend enables rollDiceBtn if it's their turn and diceValue is null.
+        // Broadcast keep_turn so the client re-enables the Roll Dice button
+        broadcastToRoom(room, {
+            type: 'keep_turn',
+            currentTurn: gameState.currentTurn,
+            gameState
+        });
     } else {
         nextTurn(room);
     }
 }
 
-
-// checkCapture moved to utils/gameLogic.js
-
-/**
- * Switches the turn to the next player.
- * @param {Object} room - The current game room objects.
- */
 function nextTurn(room) {
     const gameState = room.gameState;
     const colors = Object.keys(gameState.players);
     const currentIndex = colors.indexOf(gameState.currentTurn);
-    const nextIndex = (currentIndex + 1) % colors.length;
-
-    gameState.currentTurn = colors[nextIndex];
+    gameState.currentTurn = colors[(currentIndex + 1) % colors.length];
     gameState.diceValue = null;
     gameState.consecutiveSixes = 0;
 
     broadcastToRoom(room, {
         type: 'turn_changed',
         currentTurn: gameState.currentTurn,
-        gameState: gameState
+        gameState
     });
 
     broadcastToRoom(room, {
@@ -464,39 +408,30 @@ function nextTurn(room) {
     checkBotTurn(room);
 }
 
-/**
- * Checks if the current turn belongs to a bot and triggers bot action.
- * @param {Object} room - The current game room.
- */
 function checkBotTurn(room) {
     const gameState = room.gameState;
-    if (!gameState || gameState.gameOver) return;
+    // ✅ FIX #8: Added gameStarted guard
+    if (!gameState || gameState.gameOver || !gameState.gameStarted) return;
 
     const currentPlayer = room.players.find(p => p.color === gameState.currentTurn);
     if (currentPlayer && currentPlayer.isBot) {
-        setTimeout(() => {
-            botRollDice(room, currentPlayer);
-        }, 1500); // Wait after turn change
+        setTimeout(() => botRollDice(room, currentPlayer), 1500);
     }
 }
 
-/**
- * Bot rolls the dice.
- */
 function botRollDice(room, botPlayer) {
     const gameState = room.gameState;
+    if (!gameState || gameState.gameOver || gameState.diceValue !== null) return;
+
     const diceValue = Math.floor(Math.random() * 6) + 1;
     gameState.diceValue = diceValue;
 
-    if (diceValue === 6) {
-        gameState.consecutiveSixes++;
-    } else {
-        gameState.consecutiveSixes = 0;
-    }
+    if (diceValue === 6) gameState.consecutiveSixes++;
+    else gameState.consecutiveSixes = 0;
 
     broadcastToRoom(room, {
         type: 'dice_rolled',
-        diceValue: diceValue,
+        diceValue,
         currentTurn: gameState.currentTurn
     });
 
@@ -506,139 +441,153 @@ function botRollDice(room, botPlayer) {
             type_meta: 'system',
             message: `${botPlayer.name} rolled three 6s! Turn lost.`
         });
-        setTimeout(() => {
-            nextTurn(room);
-        }, 1500);
+        gameState.diceValue = null;
+        setTimeout(() => nextTurn(room), 1500);
         return;
     }
 
     setTimeout(() => {
         const tokenId = getBotMove(gameState, botPlayer.color, diceValue);
-
         if (tokenId === null) {
+            broadcastToRoom(room, {
+                type: 'chat_message',
+                type_meta: 'system',
+                message: `${botPlayer.name} has no valid moves.`
+            });
             nextTurn(room);
         } else {
             botMoveToken(room, botPlayer, tokenId);
         }
-    }, 1500); // Wait after roll
+    }, 1500);
 }
 
-/**
- * Bot moves a token.
- */
 function botMoveToken(room, botPlayer, tokenId) {
     const gameState = room.gameState;
     const player = gameState.players[botPlayer.color];
-    const token = player.tokens[tokenId];
+    // Look up token by id (not array index)
+    const token = player.tokens.find(t => t.id === tokenId);
+    if (!token || token.isHome) return;
 
     let extraTurn = false;
 
     if (token.position === -1 && gameState.diceValue === 6) {
         token.position = 0;
         token.isSafe = false;
-    } else if (token.position >= 0 && !token.isHome) {
+    } else if (token.position >= 0) {
         const newPosition = token.position + gameState.diceValue;
-        if (newPosition === 57) {
-            token.position = 57;
+        if (newPosition === GOAL_POSITION) {
+            token.position = GOAL_POSITION;
             token.isHome = true;
             player.score++;
             extraTurn = true;
-        } else if (newPosition < 57) {
+
+            broadcastToRoom(room, {
+                type: 'chat_message',
+                type_meta: 'system',
+                message: `${botPlayer.name}'s token reached home! Extra turn awarded.`
+            });
+        } else {
             token.position = newPosition;
             const captured = checkCapture(gameState, botPlayer.color, newPosition);
-            if (captured) extraTurn = true;
+            if (captured.length > 0) {
+                extraTurn = true;
+                broadcastToRoom(room, {
+                    type: 'chat_message',
+                    type_meta: 'system',
+                    message: `${botPlayer.name} captured a token! Extra turn awarded.`
+                });
+            }
         }
     }
 
     broadcastToRoom(room, {
         type: 'token_moved',
         color: botPlayer.color,
-        tokenId: tokenId,
-        gameState: gameState
+        tokenId,
+        gameState
     });
 
     if (player.score === 4) {
         gameState.gameOver = true;
         gameState.winner = botPlayer.color;
         broadcastToRoom(room, { type: 'game_over', winner: botPlayer.color });
+        broadcastToRoom(room, {
+            type: 'chat_message',
+            type_meta: 'system',
+            message: `🏆 GAME OVER! ${botPlayer.name} wins!`
+        });
         return;
     }
 
     if (gameState.diceValue === 6 || extraTurn) {
         gameState.diceValue = null;
-        setTimeout(() => {
-            botRollDice(room, botPlayer);
-        }, 1500);
+        broadcastToRoom(room, {
+            type: 'keep_turn',
+            currentTurn: gameState.currentTurn,
+            gameState
+        });
+        setTimeout(() => botRollDice(room, botPlayer), 1500);
     } else {
         nextTurn(room);
     }
 }
 
-/**
- * Broadcasts a message to all players in a room.
- * @param {Object} room - The game room to broadcast to.
- * @param {Object} message - The message object to send.
- */
+// ✅ FIX #4: Safe broadcast with try/catch
 function broadcastToRoom(room, message) {
+    const json = JSON.stringify(message);
     room.players.forEach(player => {
-        player.ws.send(JSON.stringify(message));
+        try {
+            if (player.ws.readyState === WebSocket.OPEN || player.isBot) {
+                player.ws.send(json);
+            }
+        } catch (err) {
+            console.error(`Failed to send to ${player.name}:`, err.message);
+        }
     });
 }
 
-/**
- * Handles player disconnection.
- * @param {WebSocket} ws - The disconnected player's WebSocket.
- */
 function handleDisconnect(ws) {
-    if (ws.roomId) {
-        const room = rooms.get(ws.roomId);
-        if (room) {
-            room.players = room.players.filter(p => p.ws !== ws);
+    if (!ws.roomId) return;
 
-            if (room.players.length === 0) {
-                rooms.delete(ws.roomId);
-            } else {
-                // Host Migration
-                if (room.host === ws) {
-                    // Filter out bots to find a human host? 
-                    // Actually, let's just pick the first player who isn't a bot.
-                    const newHost = room.players.find(p => !p.isBot);
-                    if (newHost) {
-                        room.host = newHost.ws;
-                        broadcastToRoom(room, {
-                            type: 'chat_message',
-                            type_meta: 'system',
-                            message: `${newHost.name} is now the host.`
-                        });
-                    }
-                }
+    const room = rooms.get(ws.roomId);
+    if (!room) return;
 
-                const playerName = ws.playerName || 'A player';
-                broadcastToRoom(room, {
-                    type: 'player_left',
-                    players: room.players.map(p => ({
-                        name: p.name,
-                        color: p.color,
-                        ready: p.ready,
-                        isBot: p.isBot
-                    }))
-                });
+    const playerName = ws.playerName || 'A player';
+    room.players = room.players.filter(p => p.ws !== ws);
 
-                broadcastToRoom(room, {
-                    type: 'chat_message',
-                    type_meta: 'system',
-                    message: `${playerName} has left the game.`
-                });
-            }
+    if (room.players.length === 0) {
+        rooms.delete(ws.roomId);
+        return;
+    }
+
+    // Host migration
+    if (room.host === ws) {
+        const newHost = room.players.find(p => !p.isBot);
+        if (newHost) {
+            room.host = newHost.ws;
+            broadcastToRoom(room, {
+                type: 'chat_message',
+                type_meta: 'system',
+                message: `${newHost.name} is now the host.`
+            });
         }
     }
+
+    // ✅ FIX #6: 'player_disconnected' to match client handler
+    broadcastToRoom(room, {
+        type: 'player_disconnected',
+        players: room.players.map(p => ({
+            name: p.name, color: p.color, ready: p.ready, isBot: p.isBot
+        }))
+    });
+
+    broadcastToRoom(room, {
+        type: 'chat_message',
+        type_meta: 'system',
+        message: `${playerName} has left the game.`
+    });
 }
 
-/**
- * Handles incoming chat messages and broadcasts them to the room.
- * @param {WebSocket} ws - The current WebSocket client.
- * @param {Object} data - The chat message data.
- */
 function handleChatMessage(ws, data) {
     const room = rooms.get(ws.roomId);
     if (!room) return;
@@ -655,5 +604,4 @@ server.listen(PORT, () => {
     console.log(`Ludo server running on port ${PORT}`);
 });
 
-// Export elements for potential testing
 module.exports = { app, server, rooms };

@@ -6,12 +6,18 @@
     "start": "node server.js",
     "dev": "node server.js"
   },
-  "keywords": ["ludo", "multiplayer", "game", "board-game"],
+  "keywords": [
+    "ludo",
+    "multiplayer",
+    "game",
+    "board-game"
+  ],
   "author": "",
   "license": "ISC",
   "description": "Classic Ludo multiplayer game with 2-4 players",
   "dependencies": {
-    "express": "^5.1.0",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14",
     "ws": "^8.18.3"
   }
 }
