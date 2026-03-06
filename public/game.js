@@ -860,8 +860,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (copyRoomIdBtn) {
         copyRoomIdBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(currentRoomId || '')
-                .then(() => showToast('Room ID copied!', 'success'))
+            navigator.clipboard.writeText(displayRoomId.textContent)
+                .then(() => {
+                    showToast('Room ID copied!', 'success');
+                    const originalText = copyRoomIdBtn.innerHTML;
+                    copyRoomIdBtn.innerHTML = '<span aria-hidden="true">✔</span>';
+                    setTimeout(() => { copyRoomIdBtn.innerHTML = originalText; }, 2000);
+                })
                 .catch(() => showToast('Failed to copy Room ID', 'error'));
         });
     }
