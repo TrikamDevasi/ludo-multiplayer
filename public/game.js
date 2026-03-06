@@ -82,6 +82,19 @@ function loadSessionData() {
 }
 
 
+// ===== How to Play UI =====
+const howToPlayBtn = document.getElementById('howToPlayBtn');
+const howToPlaySection = document.getElementById('howToPlaySection');
+const closeHowToPlayBtn = document.getElementById('closeHowToPlayBtn');
+
+if (howToPlayBtn) {
+    howToPlayBtn.onclick = () => howToPlaySection.classList.remove('hidden');
+}
+if (closeHowToPlayBtn) {
+    closeHowToPlayBtn.onclick = () => howToPlaySection.classList.add('hidden');
+}
+
+
 // ===== Audio =====
 class AudioController {
     constructor() { this.ctx = null; this.enabled = true; }
