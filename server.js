@@ -20,22 +20,27 @@ const wss = new WebSocket.Server({ server });
 app.use(express.static('public'));
 
 app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    log('HTTP', `${req.method} ${req.url}`);
     next();
 });
+
+function log(category, message, roomId = 'GLOBAL') {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [${category}] [${roomId}] ${message}`);
+}
 
 const PORT = process.env.PORT || 3000;
 const rooms = new Map();
 
 wss.on('connection', (ws) => {
-    console.log('New client connected');
+    log('WS', 'New client connected');
 
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
             handleMessage(ws, data);
         } catch (error) {
-            console.error('Error parsing message:', error);
+            log('ERROR', `Error parsing message: ${error.message}`);
         }
     });
 
