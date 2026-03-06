@@ -36,6 +36,12 @@ const joinRoomSection = document.getElementById('joinRoomSection');
 const roomIdInput = document.getElementById('roomIdInput');
 const joinRoomConfirmBtn = document.getElementById('joinRoomConfirmBtn');
 
+if (roomIdInput) {
+    roomIdInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
+    });
+}
+
 
 const displayRoomId = document.getElementById('displayRoomId');
 const copyRoomIdBtn = document.getElementById('copyRoomIdBtn');
