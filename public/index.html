@@ -20,7 +20,8 @@
     <!-- ✅ FIX #1: Added Cinzel font (used in headings by updated CSS) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
 
     <link rel="stylesheet" href="style.css">
@@ -59,14 +60,8 @@
 
                 <!-- ✅ Label is visually hidden but accessible -->
                 <label for="playerNameInput" class="visually-hidden">Your Name</label>
-                <input
-                    type="text"
-                    id="playerNameInput"
-                    placeholder="Enter your name"
-                    maxlength="20"
-                    aria-label="Player name"
-                    autocomplete="off"
-                    spellcheck="false">
+                <input type="text" id="playerNameInput" placeholder="Enter your name" maxlength="20"
+                    aria-label="Player name" autocomplete="off" spellcheck="false">
 
                 <div class="setting-group">
                     <label for="playerCountSelect">Number of Players</label>
@@ -91,15 +86,8 @@
                 <!-- Join Room Section (hidden until Join Room is clicked) -->
                 <div id="joinRoomSection" class="hidden">
                     <label for="roomIdInput" class="visually-hidden">Room ID</label>
-                    <input
-                        type="text"
-                        id="roomIdInput"
-                        placeholder="Enter Room ID (e.g. AB12CD)"
-                        maxlength="6"
-                        aria-label="Room ID"
-                        autocomplete="off"
-                        spellcheck="false"
-                        style="text-transform: uppercase;">
+                    <input type="text" id="roomIdInput" placeholder="Enter Room ID (e.g. AB12CD)" maxlength="6"
+                        aria-label="Room ID" autocomplete="off" spellcheck="false" style="text-transform: uppercase;">
                     <button id="joinRoomConfirmBtn" class="btn btn-success">
                         <span aria-hidden="true">✅</span>
                         Join Game
@@ -117,10 +105,7 @@
 
                 <div class="room-id-display">
                     <span id="displayRoomId" aria-label="Room ID" aria-live="polite"></span>
-                    <button
-                        id="copyRoomIdBtn"
-                        class="btn-icon"
-                        title="Copy Room ID"
+                    <button id="copyRoomIdBtn" class="btn-icon" title="Copy Room ID"
                         aria-label="Copy room ID to clipboard">
                         <span aria-hidden="true">📋</span>
                     </button>
@@ -161,12 +146,8 @@
             <div class="game-container">
 
                 <!-- Ludo Board Canvas -->
-                <canvas
-                    id="ludoCanvas"
-                    width="600"
-                    height="600"
-                    aria-label="Ludo game board — click your token to move it"
-                    role="img">
+                <canvas id="ludoCanvas" width="600" height="600"
+                    aria-label="Ludo game board — click your token to move it" role="img">
                     <!-- ✅ FIX #5: Fallback content for non-canvas browsers -->
                     Your browser does not support the HTML canvas element. Please upgrade to a modern browser.
                 </canvas>
@@ -188,28 +169,14 @@
 
                         <!-- Chat -->
                         <div class="chat-system" aria-label="Game chat">
-                            <div
-                                id="chatMessages"
-                                class="chat-messages"
-                                role="log"
-                                aria-live="polite"
-                                aria-label="Chat messages"
-                                aria-relevant="additions">
+                            <div id="chatMessages" class="chat-messages" role="log" aria-live="polite"
+                                aria-label="Chat messages" aria-relevant="additions">
                             </div>
                             <div class="chat-input-area">
                                 <label for="chatInput" class="visually-hidden">Chat message</label>
-                                <input
-                                    type="text"
-                                    id="chatInput"
-                                    placeholder="Message..."
-                                    maxlength="200"
-                                    aria-label="Chat message"
-                                    autocomplete="off"
-                                    spellcheck="false">
-                                <button
-                                    id="sendChatBtn"
-                                    title="Send message"
-                                    aria-label="Send chat message">
+                                <input type="text" id="chatInput" placeholder="Message..." maxlength="200"
+                                    aria-label="Chat message" autocomplete="off" spellcheck="false">
+                                <button id="sendChatBtn" title="Send message" aria-label="Send chat message">
                                     <span aria-hidden="true">➤</span>
                                 </button>
                             </div>
@@ -230,12 +197,7 @@
         </div>
 
         <!-- ===== Game Over Modal ===== -->
-        <div
-            id="gameOverModal"
-            class="modal hidden"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="winnerText"
+        <div id="gameOverModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="winnerText"
             aria-describedby="gameStats">
             <div class="modal-content">
                 <span class="winner-icon" aria-hidden="true">🏆</span>
@@ -253,6 +215,7 @@
 
     </div><!-- /.container -->
 
+    <script src="js/constants.js"></script>
     <script src="game.js" defer></script>
 </body>
 
