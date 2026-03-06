@@ -232,6 +232,11 @@ function sendMessage(data) {
 function updateConnectionStatus(status) {
     connectionStatus.className = `status-bar ${status}`;
     statusText.textContent = status === 'connected' ? 'Connected ✓' : 'Disconnected ✗';
+    if (status === 'connected') {
+        document.body.classList.remove('disconnected-overlay');
+    } else {
+        document.body.classList.add('disconnected-overlay');
+    }
 }
 
 
