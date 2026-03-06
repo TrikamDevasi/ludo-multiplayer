@@ -169,12 +169,17 @@ function addBot(ws) {
         return;
     }
 
-    const botId = room.players.filter(p => p.isBot).length + 1;
+    const botNames = [
+        'Sir Rolls-a-Lot', 'Ludo Legend', 'Dice Master', 'Token Terror',
+        'Amber Avenger', 'Gold Gobbler', 'Classic Champ', 'Board Boss',
+        'Quick Click', 'Swift Slider', 'Royal Roller', 'Parchment Pal'
+    ];
+    const botName = botNames[Math.floor(Math.random() * botNames.length)];
     const color = PLAYER_COLORS[room.players.length];  // ✅ FIX #2
 
     const botPlayer = {
         ws: { send: () => { }, readyState: WebSocket.OPEN }, // ✅ added readyState for safety
-        name: `Bot ${botId}`,
+        name: `${botName} (Bot)`,
         color,
         ready: true,
         isBot: true
