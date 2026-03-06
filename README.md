@@ -8,7 +8,10 @@ A real-time, web-based multiplayer Ludo game built with JavaScript, Node.js, and
 - **WebSocket Communication**: Smooth, low-latency gameplay.
 - **Responsive Design**: Play on your desktop or mobile browser.
 - **Turn-based Logic**: Full implementation of standard Ludo rules, including captures and home stretches.
-- **Bot Mode**: Play solo against intelligent AI bots when friends aren't around.
+- **Bot Mode**: Play solo against intelligent AI bots with randomized fun personalities.
+- **Improved UX**: Auto-formatted Room ID input, visual copy feedback, and detailed "How to Play" guide.
+- **Enhanced Stability**: Structured server logging and improved connection loss handling.
+- **Better Architecture**: Shared constant management and consistent communication protocols.
 
 ## Tech Stack
 - **Frontend**: Vanilla JavaScript (ES6+), HTML5 Canvas, CSS3
