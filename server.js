@@ -88,7 +88,7 @@ function createRoom(ws, data) {
 
     broadcastToRoom(room, {
         type: 'chat_message',
-        type_meta: 'system',
+        isSystem: true,
         message: `Welcome! Room ID: ${roomId}`
     });
 }
@@ -155,7 +155,7 @@ function joinRoom(ws, data) {
 
     broadcastToRoom(room, {
         type: 'chat_message',
-        type_meta: 'system',
+        isSystem: true,
         message: `${data.playerName} has joined the game!`
     });
 }
@@ -196,7 +196,7 @@ function addBot(ws) {
 
     broadcastToRoom(room, {
         type: 'chat_message',
-        type_meta: 'system',
+        isSystem: true,
         message: `${botPlayer.name} (Bot) has joined the game!`
     });
 }
@@ -216,7 +216,7 @@ function startGame(ws) {
 
     broadcastToRoom(room, {
         type: 'chat_message',
-        type_meta: 'system',
+        isSystem: true,
         message: 'Game has started! Good luck! Capture opponents for extra turns!'
     });
 
@@ -411,7 +411,7 @@ function nextTurn(room) {
 
     broadcastToRoom(room, {
         type: 'chat_message',
-        type_meta: 'system',
+        isSystem: true,
         message: `It is now ${gameState.currentTurn.toUpperCase()}'s turn.`
     });
 
@@ -593,7 +593,7 @@ function handleDisconnect(ws) {
 
     broadcastToRoom(room, {
         type: 'chat_message',
-        type_meta: 'system',
+        isSystem: true,
         message: `${playerName} has left the game.`
     });
 }

@@ -505,7 +505,7 @@ function appendChatMessage(data) {
     if (!chatMessages) return;
     const messageDiv = document.createElement('div');
     const isSelf = data.sender === myColor;
-    if (data.type_meta === 'system' || !data.sender) {
+    if (data.isSystem || !data.sender) {
         messageDiv.className = 'chat-message system';
         messageDiv.textContent = data.message;
     } else {
