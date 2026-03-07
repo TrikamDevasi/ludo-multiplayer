@@ -45,6 +45,7 @@ if (roomIdInput) {
 
 const displayRoomId = document.getElementById('displayRoomId');
 const copyRoomIdBtn = document.getElementById('copyRoomIdBtn');
+const shareRoomBtn = document.getElementById('shareRoomBtn');
 const playersList = document.getElementById('playersList');
 const startGameBtn = document.getElementById('startGameBtn');
 
@@ -898,8 +899,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     if (copyRoomIdBtn) {
-        copyRoomIdBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(displayRoomId.textContent)
+        copyRoomIdBtn.onclick = () => {
+            navigator.clipboard.writeText(currentRoomId)
                 .then(() => {
                     showToast('Room ID copied!', 'success');
                     const originalText = copyRoomIdBtn.innerHTML;
@@ -907,7 +908,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => { copyRoomIdBtn.innerHTML = originalText; }, 2000);
                 })
                 .catch(() => showToast('Failed to copy Room ID', 'error'));
-        });
+        };
+    }
+
+    const shareRoomBtn = document.getElementById('shareRoomBtn');
+    if (shareRoomBtn) {
+        shareRoomBtn.onclick = () => {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
+            const shareData = {
+                title: 'Join my Ludo Game!',
+                text: `Join my Ludo Multiplayer room: ${currentRoomId}`,
+                url: shareUrl
+            };
+
+            if (navigator.share) {
+                navigator.share(shareData).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showToast('Join link copied!', 'success');
+                });
+            }
+        };
     }
 
 

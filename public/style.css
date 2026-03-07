@@ -1654,3 +1654,22 @@ input[type="text"]:focus {
         display: none;
     }
 }
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    flex: none;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: var(--bg-card);
+    padding: 12px 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+}
