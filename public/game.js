@@ -970,3 +970,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     connectWebSocket();
 });
+
+
+// Auto-join from URL
+window.addEventListener('DOMContentLoaded', () => {
+    loadSessionData();
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+        roomIdInput.value = roomParam.toUpperCase();
+        showToast('Room ID from link applied', 'info');
+        // Proactively show the join section if we have a room ID
+        if (joinRoomSection) joinRoomSection.classList.remove('hidden');
+    }
+});
+
