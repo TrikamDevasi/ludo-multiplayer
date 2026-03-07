@@ -156,7 +156,7 @@ function joinRoom(ws, data) {
     broadcastToRoom(room, {
         type: 'chat_message',
         isSystem: true,
-        message: `${data.playerName} has joined the game!`
+        message: `📢 ${data.playerName} has joined the game!`
     });
 }
 
@@ -197,7 +197,7 @@ function addBot(ws) {
     broadcastToRoom(room, {
         type: 'chat_message',
         isSystem: true,
-        message: `${botPlayer.name} (Bot) has joined the game!`
+        message: `🤖 ${botPlayer.name} has joined the game!`
     });
 }
 
@@ -594,7 +594,7 @@ function handleDisconnect(ws) {
     broadcastToRoom(room, {
         type: 'chat_message',
         isSystem: true,
-        message: `${playerName} has left the game.`
+        message: `🚪 ${playerName} has left the game.`
     });
 }
 
