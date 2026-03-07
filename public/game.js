@@ -59,6 +59,8 @@ const diceResult = document.getElementById('diceResult');
 const gameOverModal = document.getElementById('gameOverModal');
 const winnerText = document.getElementById('winnerText');
 const backToMenuBtn = document.getElementById('backToMenuBtn');
+const lobbyBackBtn = document.getElementById('lobbyBackBtn');
+const gameBackBtn = document.getElementById('gameBackBtn');
 
 
 // Constants are now imported from js/constants.js
@@ -99,6 +101,38 @@ if (howToPlayBtn) {
 if (closeHowToPlayBtn) {
     closeHowToPlayBtn.onclick = () => howToPlaySection.classList.add('hidden');
 }
+
+
+// ===== Back to Menu Logic =====
+function resetToMenu() {
+    if (ws) {
+        ws.close(); // Closing connection will trigger handleDisconnect on server
+    }
+    currentRoomId = null;
+    myColor = null;
+    gameState = null;
+    previousGameState = null;
+
+    // UI Reset
+    gameScreen.classList.remove('active');
+    waitingScreen.classList.remove('active');
+    menuScreen.classList.add('active');
+    gameOverModal.classList.add('hidden');
+
+    // Clear chat
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) chatMessages.innerHTML = '';
+
+    // Clear canvas
+    if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    showToast('Returned to menu', 'info');
+    connectWebSocket(); // Reconnect for a fresh start
+}
+
+if (backToMenuBtn) backToMenuBtn.onclick = resetToMenu;
+if (lobbyBackBtn) lobbyBackBtn.onclick = resetToMenu;
+if (gameBackBtn) gameBackBtn.onclick = resetToMenu;
 
 
 // ===== Audio =====
